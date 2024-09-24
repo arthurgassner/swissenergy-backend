@@ -41,4 +41,4 @@ The data is sourced from [ENTSO-E](https://transparency.entsoe.eu/load-domain/r2
 ### Website
 
 - [ ] Build a rudimentary website showcasing a plot of the current prediction.
-- [ ] Use the website to explain your approach to 
+- [ ] Use the website to explain your approach to EDA, modelling and MLOPs
