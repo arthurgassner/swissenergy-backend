@@ -25,6 +25,7 @@ The data is sourced from [ENTSO-E](https://transparency.entsoe.eu/load-domain/r2
 - [x] Build a LGBM-based model leveraging the last hour's consumption
 - [x] Perform feature engineering to enrich the data with the hourly-consumption 24h ago, and a week ago.
 - [x] Perform feature engineering to enrich the data with statistics about the previous hourly-consumptions, over 24h and 7d.
+- [ ] Perform hyperparameters search (`optuna`), potentially also through the features used.
 - [ ] Use weather-related covariates -- both past and future -- as features.
 - [ ] Use Swiss-stock-market covariates -- both past and future -- as features.
 - [ ] Leverage the energy outage data as past covariate.
