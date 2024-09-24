@@ -25,6 +25,7 @@ The data is sourced from [ENTSO-E](https://transparency.entsoe.eu/load-domain/r2
 - [x] Build a LGBM-based model leveraging the last hour's consumption
 - [x] Perform feature engineering to enrich the data with the hourly-consumption 24h ago, and a week ago.
 - [x] Perform feature engineering to enrich the data with statistics about the previous hourly-consumptions, over 24h and 7d.
+- [x] Build a training notebook, where the best model can be trained from scratch.
 - [ ] Perform hyperparameters search (`optuna`), potentially also through the features used.
 - [ ] Use weather-related covariates -- both past and future -- as features.
 - [ ] Use Swiss-stock-market covariates -- both past and future -- as features.
@@ -43,3 +44,6 @@ The data is sourced from [ENTSO-E](https://transparency.entsoe.eu/load-domain/r2
 
 - [ ] Build a rudimentary website showcasing a plot of the current prediction.
 - [ ] Use the website to explain your approach to EDA, modelling and MLOPs
+- [ ] EDA: Talk about autocorrelation, window-average
+- [ ] Modelling: Talk about back-testing, back-testing with sampling to avoid losing too much time on compute, how to represent a time series as a regression problem
+- [ ] MLOps: Talk about how to deploy on a VPS
