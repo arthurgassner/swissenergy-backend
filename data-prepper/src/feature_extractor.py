@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from typing import Callable
+from pathlib import Path
 
 class FeatureExtractor:
     def __init__(self) -> None:
@@ -92,4 +93,5 @@ class FeatureExtractor:
         ])  
         
         # Dump to output df
+        Path(out_df_filepath).parent.mkdir(parents=True, exist_ok=True) # Ensure the folderpath exists 
         df.to_parquet(out_df_filepath)

@@ -1,4 +1,5 @@
 import pandas as pd
+from pathlib import Path
 
 class DataCleaner:
     def __init__(self) -> None:
@@ -19,4 +20,5 @@ class DataCleaner:
         })
 
         # Dump to output dataframe filepath
+        Path(out_df_filepath).parent.mkdir(parents=True, exist_ok=True) # Ensure the folderpath exists 
         df.to_parquet(out_df_filepath)

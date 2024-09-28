@@ -36,4 +36,5 @@ class DataLoader:
         current_df = pd.concat([current_df, fetched_df], axis=0)
 
         # Dump to output df
+        Path(out_df_filepath).parent.mkdir(parents=True, exist_ok=True) # Ensure the folderpath exists 
         current_df.to_parquet(out_df_filepath)
