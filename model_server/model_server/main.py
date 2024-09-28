@@ -1,22 +1,38 @@
 from fastapi import BackgroundTasks, FastAPI
+from dotenv import load_dotenv
+import os
 import pandas as pd
 from datetime import datetime
-import lightgbm as lgb
 
+from .data_loader import DataLoader
+from .data_cleaner import DataCleaner
+from .feature_extractor import FeatureExtractor
 from .model import Model
 
 app = FastAPI(title="Data preparation")
 
-model = Model(model_filepath='data/model.joblib')
+def forecast_next_24h(entsoe_api_key: str):
+    # Update the bronze-layer data
+    data_loader = DataLoader(entsoe_api_key=entsoe_api_key)
+    data_loader.update_df(out_df_filepath="data/bronze/df.parquet")
 
-def train():
-    """Train the model
-    """
+    # Clean the bronze-layer data
+    DataCleaner.clean(
+        in_df_filepath='data/bronze/df.parquet',
+        out_df_filepath='data/silver/df.parquet',
+    )
+
+    # Extract features
+    FeatureExtractor.extract_features(
+        in_df_filepath='data/silver/df.parquet',
+        out_df_filepath='data/gold/df.parquet',
+    )
+
+    # Train 
+    model = Model(model_filepath='data/model.joblib')
     model.train(Xy_filepath='data/gold/df.parquet', n_estimators=100)
 
-def test():
-    """Backtest the model
-    """
+    # Backtest model
     _, mape = model.backtest(
         Xy_filepath='data/gold/df.parquet',
         starting_ts=pd.Timestamp(datetime.now() - pd.Timedelta(30, 'd'), tz='Europe/Zurich'),
@@ -24,24 +40,16 @@ def test():
     )
     print(f'Backtested MAPE: {mape:.2f}%')
 
-@app.get("/train")
-async def get_train(background_tasks: BackgroundTasks):
-    background_tasks.add_task(train)
-    return {"message": "Model training started"} 
-
-@app.get("/test")
-async def get_test(background_tasks: BackgroundTasks):
-    background_tasks.add_task(test)
-    return {"message": "Model testing started"} 
-
-@app.get("/predict")
-async def get_predict():
-    yhat = model.predict(
+    # Predict    
+    model.train(Xy_filepath='data/gold/df.parquet', n_estimators=100)
+    model.predict(
         in_df_filepath='data/gold/df.parquet', 
         out_yhat_filepath='data/yhat.parquet',
     )
 
-    return {
-        "timestamps": list(yhat.index), 
-        "predicted_24h_later_load": list(yhat['predicted_24h_later_load']),
-    } 
+
+@app.get("/forecast-next-24h")
+async def get_forecast_next_24h(background_tasks: BackgroundTasks):
+    load_dotenv()
+    background_tasks.add_task(forecast_next_24h, entsoe_api_key=os.getenv('ENTSOE_API_KEY'))
+    return {"message": "Forecasting task started..."} 

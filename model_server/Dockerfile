@@ -8,4 +8,4 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY ./model_server /code/model_server
 
-CMD ["fastapi", "run", "model_server/main.py", "--port", "81"]
+CMD ["fastapi", "run", "model_server/main.py", "--port", "80"]
