@@ -11,7 +11,7 @@ from data_cleaner import DataCleaner
 from feature_extractor import FeatureExtractor
 from model_trainer import ModelTrainer
 
-load_dotenv(dotenv_path='nb-prod/.env')
+load_dotenv(dotenv_path='.env')
 
 app = FastAPI(title="Data preparation")
 
