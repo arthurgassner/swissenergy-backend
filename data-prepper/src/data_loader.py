@@ -5,8 +5,8 @@ from datetime import datetime
 from pathlib import Path
 
 class DataLoader:
-    def __init__(self, enstoe_api_key: str) -> None:
-        self._entsoe_pandas_client = EntsoePandasClient(api_key=enstoe_api_key) # Get API key through website, after kindly asking the support
+    def __init__(self, entsoe_api_key: str) -> None:
+        self._entsoe_pandas_client = EntsoePandasClient(api_key=entsoe_api_key) # Get API key through website, after kindly asking the support
         
     def update_df(self, out_df_filepath: str) -> None:
         # Load already-downloaded data
