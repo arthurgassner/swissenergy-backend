@@ -1,7 +1,6 @@
 import pandas as pd
-import numpy as np
 from tqdm import tqdm
-from typing import Tuple, Optional
+from typing import Tuple
 import lightgbm as lgb
 from sklearn.metrics import mean_absolute_percentage_error
 import pandas as pd
