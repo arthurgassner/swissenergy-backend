@@ -5,15 +5,14 @@ from datetime import datetime
 from pathlib import Path
 
 class DataLoader:
-    def __init__(self, enstoe_api_key: str, out_df_filepath: str) -> None:
+    def __init__(self, enstoe_api_key: str) -> None:
         self._entsoe_pandas_client = EntsoePandasClient(api_key=enstoe_api_key) # Get API key through website, after kindly asking the support
-        self._out_df_filepath = out_df_filepath # Filepath where the output .parquet will be located
         
-    def update_bronze_df(self) -> None:
+    def update_df(self, out_df_filepath: str) -> None:
         # Load already-downloaded data
         current_df = pd.DataFrame()
-        if Path(self._out_df_filepath).is_file():
-            current_df = pd.read_parquet(self._out_df_filepath)
+        if Path(out_df_filepath).is_file():
+            current_df = pd.read_parquet(out_df_filepath)
 
         # Figure out the timestamp of the latest-available row
         latest_available_ts = pd.Timestamp('20140101', tz='Europe/Zurich') # Very early ts
@@ -36,5 +35,5 @@ class DataLoader:
         # Append the newly-fetched data to the current data 
         current_df = pd.concat([current_df, fetched_df], axis=0)
 
-        # Dump to bronze
-        current_df.to_parquet(self._out_df_filepath)
+        # Dump to output df
+        current_df.to_parquet(out_df_filepath)
