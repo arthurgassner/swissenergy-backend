@@ -16,7 +16,7 @@ The data is sourced from [ENTSO-E](https://transparency.entsoe.eu/load-domain/r2
 ## TODOs
 
 ### Data
-- [x] Locally all data up to some recent point in time 
+- [x] Locally get all data up to some recent point in time 
 
 ### Modelling
 - [x] Measure the performance of their current approach
@@ -33,12 +33,14 @@ The data is sourced from [ENTSO-E](https://transparency.entsoe.eu/load-domain/r2
 
 ### MLOps
 
-- [ ] Move the latest modelling efforts into a `.py`
-- [ ] Dockerize the inference, loading a pre-trained model
-- [ ] Deploy the docker image on a VPS
-- [ ] Dockerize the training
-- [ ] Deploy the docker image on a VPS
-- [ ] Dynamically load the latest data from the ENTSO-E website (which is updated hourly.)
+- [x] Move the modelling efforts into a `.py`
+- [x] Build a FastAPI server
+- [x] Dockerize the `.py`
+- [x] Deploy the docker image on a VPS
+- [ ] Setup a Cron job to retrain the model hourly
+- [ ] Build a small webserver allowing access to the ENTSOE-DF data and the latest model's prediction
+- [ ] Host that webserver on the VPS, allowing access through the internet
+- [ ] Automatically update the software on the VPS through GitHub Actions
 
 ### Website
 
