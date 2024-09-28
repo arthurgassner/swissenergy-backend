@@ -6,6 +6,6 @@ COPY ./requirements.txt /code/requirements.txt
 
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-COPY ./src /code/src
+COPY ./data_prepper /code/data_prepper
 
-CMD ["fastapi", "run", "src/main.py", "--port", "81"]
+CMD ["fastapi", "run", "data_prepper/main.py", "--port", "80"]
