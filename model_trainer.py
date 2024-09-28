@@ -10,11 +10,6 @@ class ModelTrainer:
         pass
 
     @staticmethod
-    def fit(n_estimators: int) -> lgb.LGBMRegressor:
-        reg = lgb.LGBMRegressor(n_estimators=n_estimators, force_row_wise=True, verbose=0)
-        return reg
-
-    @staticmethod
     def backtest(Xy_filepath: str, model: lgb.LGBMRegressor, starting_ts: pd.Timestamp, use_every_nth_ts: int = 1) -> Tuple[pd.DataFrame, float]:
         """Backtest the model, by starting at the `starting_ts` timestamp.
         
