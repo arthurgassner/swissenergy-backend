@@ -38,7 +38,7 @@ class Model:
         joblib.dump(model, self._model_filepath)
 
     def backtest(
-        self, Xy_filepath: str, starting_ts: pd.Timestamp, use_every_nth_ts: int = 1
+        self, Xy_filepath: str, timedelta: pd.Timedelta, use_every_nth_ts: int = 1
     ) -> Tuple[pd.DataFrame, float]:
         """Backtest the model, by starting at the `starting_ts` timestamp.
 
@@ -57,7 +57,7 @@ class Model:
             subset=("24h_later_load")
         )  # Only train on data for which we have the target
 
-        cutoff_timestamps = Xy[Xy.index >= starting_ts].index.to_list()
+        cutoff_timestamps = Xy[Xy.index >= Xy.index.max() - timedelta].index.to_list()
 
         cutoff_ts_to_y = {}
         for cutoff_ts in tqdm(cutoff_timestamps[::use_every_nth_ts]):

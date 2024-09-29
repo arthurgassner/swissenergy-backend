@@ -70,18 +70,14 @@ def update_forecast(entsoe_api_key: str):
     logger.info("Start back-testing the model...")
     _, mape_24h = model.backtest(
         Xy_filepath="data/gold/df.parquet",
-        starting_ts=pd.Timestamp(
-            datetime.now() - timedelta(hours=24), tz="Europe/Zurich"
-        ),
+        timedelta=pd.Timedelta(24, "h"),
         use_every_nth_ts=1,
     )
     logger.info(f"MAPE over the last 24h: {mape_24h}")
 
     _, approximated_mape_7d = model.backtest(
         Xy_filepath="data/gold/df.parquet",
-        starting_ts=pd.Timestamp(
-            datetime.now() - timedelta(days=7), tz="Europe/Zurich"
-        ),
+        timedelta=pd.Timedelta(7, "d"),
         use_every_nth_ts=20,
     )
     logger.info(f"Approximated MAPE over the last 7d: {approximated_mape_7d}")
