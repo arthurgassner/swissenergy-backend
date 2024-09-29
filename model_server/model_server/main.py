@@ -52,16 +52,13 @@ def update_forecast(entsoe_api_key: str):
 
     # Extract features
     logger.info("Start extracting features...")
-    FeatureExtractor.extract_features(
-        in_df_filepath="data/silver/df.parquet",
-        out_df_filepath="data/gold/df.parquet",
-    )
+
     logger.info("Features extracted.")
 
     # Train
     logger.info("Start training model...")
 
-    model = Model(model_filepath="data/model.joblib", n_estimators=10)
+    model = Model(model_filepath="data/model.joblib", n_estimators=1_000)
     model.train(Xy_filepath="data/gold/df.parquet")
 
     logger.info("Training done.")
