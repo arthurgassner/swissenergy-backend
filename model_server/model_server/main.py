@@ -63,3 +63,17 @@ async def get_latest_forecast():
         "timestamps": yhat.index.tolist(),
         "predicted_24h_later_load": yhat["predicted_24h_later_load"].tolist(),
     }
+
+@app.get("/entsoe-loads")
+async def get_entsoe_loads():
+    # Load past loads
+    silver_df = pd.read_parquet('data/silver/df.parquet')
+
+    # TODO make it a POST request instead of hardcoding a delay
+    silver_df = silver_df[silver_df.index > pd.Timestamp(datetime.now(), tz='Europe/Zurich') - pd.Timedelta(30, 'd')]
+
+    return {
+        "timestamps": silver_df.index.tolist(),
+        "24h_later_load": silver_df["24h_later_load"].fillna('NaN').tolist(),
+        "24h_later_forecast": silver_df["24h_later_forecast"].fillna('NaN').tolist(),
+    }
