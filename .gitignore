@@ -5,3 +5,4 @@ __pycache__
 model.joblib
 .env
 *.parquet
+iframe_figures
