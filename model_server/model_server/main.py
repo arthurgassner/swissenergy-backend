@@ -64,22 +64,25 @@ async def get_update_forecast(background_tasks: BackgroundTasks):
 
 @app.get("/latest-forecast")
 async def get_latest_forecast():
+
+    logger.info("Received GET /latest-forecast")
+
     # Load latest forecast
-
-    logger.info("Received /latest-forecast")
-
     yhat = pd.read_parquet('data/yhat.parquet')
     latest_forecasts = {
         "timestamps": yhat.index.tolist(),
         "predicted_24h_later_load": yhat["predicted_24h_later_load"].tolist(),
     }
 
-    logger.info(f"Ready to answer: {len(latest_forecasts['timestamps'])} timestamps [{min(latest_forecasts['timestamps'])} -> {max(latest_forecasts['timestamps'])}]")
+    logger.info(f"Ready to send back: {len(latest_forecasts['timestamps'])} timestamps [{min(latest_forecasts['timestamps'])} -> {max(latest_forecasts['timestamps'])}]")
 
     return latest_forecasts
 
 @app.post("/entsoe-loads")
 async def get_entsoe_loads(request: Request):
+
+    logger.info(f"Received POST /entsoe-loads - n_weeks_ago: {data.get("n_weeks_ago")}")
+
     # Figure out till when the records should be sent, defaulting to a week ago
     data = await request.json()
     n_weeks_ago = data.get("n_weeks_ago", 1)
@@ -92,8 +95,12 @@ async def get_entsoe_loads(request: Request):
     # Only keep the data till
     silver_df = silver_df[silver_df.index >= cutoff_ts]
 
-    return {
+    entsoe_loads = {
         "timestamps": silver_df.index.tolist(),
         "24h_later_load": silver_df["24h_later_load"].fillna('NaN').tolist(),
         "24h_later_forecast": silver_df["24h_later_forecast"].fillna('NaN').tolist(),
     }
+
+    logger.info(f"Ready to send back: {len(entsoe_loads['timestamps'])} timestamps [{min(entsoe_loads['timestamps'])} -> {max(entsoe_loads['timestamps'])}]")
+
+    return entsoe_loads
