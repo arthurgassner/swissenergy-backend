@@ -81,9 +81,11 @@ def update_forecast(entsoe_api_key: str):
 
 @app.get("/update-forecast")
 async def get_update_forecast(background_tasks: BackgroundTasks):
+    logger.info(f"Received GET /update-forecast")
+
     load_dotenv()
     background_tasks.add_task(update_forecast, entsoe_api_key=os.getenv('ENTSOE_API_KEY'))
-    return {"message": "Forecasting task started..."} 
+    return {"message": "Forecast updating task started..."} 
 
 @app.get("/latest-forecast")
 async def get_latest_forecast():
