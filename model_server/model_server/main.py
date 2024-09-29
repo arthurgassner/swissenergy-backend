@@ -1,4 +1,5 @@
-from fastapi import BackgroundTasks, FastAPI, Request
+from fastapi import BackgroundTasks, FastAPI
+from pydantic import BaseModel
 from dotenv import load_dotenv
 import os
 import pandas as pd
@@ -9,6 +10,9 @@ from .data_loader import DataLoader
 from .data_cleaner import DataCleaner
 from .feature_extractor import FeatureExtractor
 from .model import Model
+
+class WeekCounter(BaseModel):
+    n_weeks_ago: int = 1
 
 # Setup logging
 logging.basicConfig(level=logging.INFO,
@@ -98,14 +102,12 @@ async def get_latest_forecast():
     return latest_forecasts
 
 @app.post("/entsoe-loads")
-async def get_entsoe_loads(request: Request):
+async def get_entsoe_loads(week_counter: WeekCounter):
 
-    logger.info(f"Received POST /entsoe-loads - n_weeks_ago: {data.get("n_weeks_ago")}")
+    logger.info(f"Received POST /entsoe-loads - n_weeks_ago: {week_counter.n_weeks_ago}")
 
     # Figure out till when the records should be sent, defaulting to a week ago
-    data = await request.json()
-    n_weeks_ago = data.get("n_weeks_ago", 1)
-    cutoff_dt = datetime.now() - timedelta(weeks=n_weeks_ago)
+    cutoff_dt = datetime.now() - timedelta(weeks=week_counter.n_weeks_ago)
     cutoff_ts = pd.Timestamp(cutoff_dt, tz='Europe/Zurich')
 
     # Load past loads
