@@ -61,8 +61,8 @@ def update_forecast(entsoe_api_key: str):
     # Train
     logger.info("Start training model...")
 
-    model = Model(model_filepath="data/model.joblib")
-    model.train(Xy_filepath="data/gold/df.parquet", n_estimators=1_000)
+    model = Model(model_filepath="data/model.joblib", n_estimators=10)
+    model.train(Xy_filepath="data/gold/df.parquet")
 
     logger.info("Training done.")
 
@@ -89,7 +89,7 @@ def update_forecast(entsoe_api_key: str):
 
     # Predict
     logger.info("Start forecasting the load for the next 24h...")
-    model.train(Xy_filepath="data/gold/df.parquet", n_estimators=1_000)
+    model.train(Xy_filepath="data/gold/df.parquet")
     model.predict(
         in_df_filepath="data/gold/df.parquet",
         out_yhat_filepath="data/yhat.parquet",

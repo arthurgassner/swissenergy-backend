@@ -9,13 +9,19 @@ from tqdm import tqdm
 
 
 class Model:
-    def __init__(self, model_filepath: str) -> None:
+    def __init__(self, model_filepath: str, n_estimators: int) -> None:
         self._model_filepath = Path(model_filepath)
-        self._model_filepath.parent.mkdir(
+        self._model_filepath.parent.mkdir(  # Ensure the folderpath exists
             parents=True, exist_ok=True
-        )  # Ensure the folderpath exists
+        )
 
-    def train(self, Xy_filepath: str, n_estimators: int) -> None:
+        # Create untrained-model and dump to disk
+        model = lgb.LGBMRegressor(
+            n_estimators=n_estimators, force_row_wise=True, verbose=0
+        )
+        joblib.dump(model, self._model_filepath)
+
+    def train(self, Xy_filepath: str) -> None:
         # Prepare training data
         Xy = pd.read_parquet(Xy_filepath)
         assert "24h_later_load" in Xy.columns
@@ -25,9 +31,7 @@ class Model:
         X, y = Xy.drop(columns=["24h_later_load"]), Xy["24h_later_load"]
 
         # Train model
-        model = lgb.LGBMRegressor(
-            n_estimators=n_estimators, force_row_wise=True, verbose=0
-        )
+        model = joblib.load(self._model_filepath)
         model.fit(X, y)
 
         # Dump to disk
