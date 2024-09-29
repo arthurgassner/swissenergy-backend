@@ -11,7 +11,7 @@ from .model import Model
 
 app = FastAPI(title="Data preparation")
 
-def forecast_next_24h(entsoe_api_key: str):
+def get_update_forecast(entsoe_api_key: str):
     # Update the bronze-layer data
     data_loader = DataLoader(entsoe_api_key=entsoe_api_key)
     data_loader.update_df(out_df_filepath="data/bronze/df.parquet")
@@ -48,8 +48,8 @@ def forecast_next_24h(entsoe_api_key: str):
     )
 
 
-@app.get("/forecast-next-24h")
-async def get_forecast_next_24h(background_tasks: BackgroundTasks):
+@app.get("/update-forecast")
+async def get_update_forecast(background_tasks: BackgroundTasks):
     load_dotenv()
-    background_tasks.add_task(forecast_next_24h, entsoe_api_key=os.getenv('ENTSOE_API_KEY'))
+    background_tasks.add_task(get_update_forecast, entsoe_api_key=os.getenv('ENTSOE_API_KEY'))
     return {"message": "Forecasting task started..."} 
