@@ -70,7 +70,7 @@ async def get_entsoe_loads():
     silver_df = pd.read_parquet('data/silver/df.parquet')
 
     # TODO make it a POST request instead of hardcoding a delay
-    silver_df = silver_df[silver_df.index > pd.Timestamp(datetime.now(), tz='Europe/Zurich') - pd.Timedelta(30, 'd')]
+    silver_df = silver_df[silver_df.index > pd.Timestamp(datetime.now(), tz='Europe/Zurich') - pd.Timedelta(7, 'd')]
 
     return {
         "timestamps": silver_df.index.tolist(),
