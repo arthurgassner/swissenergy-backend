@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 import pandas as pd
 from datetime import datetime
+from pathlib import Path 
 
 from .data_loader import DataLoader
 from .data_cleaner import DataCleaner
@@ -53,3 +54,12 @@ async def get_update_forecast(background_tasks: BackgroundTasks):
     load_dotenv()
     background_tasks.add_task(get_update_forecast, entsoe_api_key=os.getenv('ENTSOE_API_KEY'))
     return {"message": "Forecasting task started..."} 
+
+@app.get("/latest-forecast")
+async def get_latest_forecast():
+    # Load latest forecast
+    yhat = pd.read_parquet('data/yhat.parquet')
+    return {
+        "timestamps": yhat.index.tolist(),
+        "predicted_24h_later_load": yhat["predicted_24h_later_load"].tolist(),
+    }
