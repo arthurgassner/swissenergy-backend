@@ -25,9 +25,9 @@ class Model:
         # Prepare training data
         Xy = pd.read_parquet(Xy_filepath)
         assert "24h_later_load" in Xy.columns
-        Xy = Xy.dropna(
+        Xy = Xy.dropna(  # Only train on data for which we have the target
             subset=("24h_later_load")
-        )  # Only train on data for which we have the target
+        )
         X, y = Xy.drop(columns=["24h_later_load"]), Xy["24h_later_load"]
 
         # Train model
