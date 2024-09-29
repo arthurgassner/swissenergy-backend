@@ -2,6 +2,7 @@ from fastapi import BackgroundTasks, FastAPI, Request
 from dotenv import load_dotenv
 import os
 import pandas as pd
+import logging
 from datetime import datetime, timedelta
 
 from .data_loader import DataLoader
@@ -9,6 +10,14 @@ from .data_cleaner import DataCleaner
 from .feature_extractor import FeatureExtractor
 from .model import Model
 
+# Setup logging
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s',
+                    handlers=[
+                        logging.FileHandler("model_server.log"),  # Log to a file
+                        logging.StreamHandler()  # Also log to the shell
+                    ])
+logger = logging.getLogger(__name__)
 app = FastAPI(title="Data preparation")    
 
 def update_forecast(entsoe_api_key: str):
@@ -56,11 +65,18 @@ async def get_update_forecast(background_tasks: BackgroundTasks):
 @app.get("/latest-forecast")
 async def get_latest_forecast():
     # Load latest forecast
+
+    logger.info("Received /latest-forecast")
+
     yhat = pd.read_parquet('data/yhat.parquet')
-    return {
+    latest_forecasts = {
         "timestamps": yhat.index.tolist(),
         "predicted_24h_later_load": yhat["predicted_24h_later_load"].tolist(),
     }
+
+    logger.info(f"Ready to answer: {len(latest_forecasts['timestamps'])} timestamps [{min(latest_forecasts['timestamps'])} -> {max(latest_forecasts['timestamps'])}]")
+
+    return latest_forecasts
 
 @app.post("/entsoe-loads")
 async def get_entsoe_loads(request: Request):

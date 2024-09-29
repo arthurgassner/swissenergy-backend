@@ -6,3 +6,4 @@ model.joblib
 .env
 *.parquet
 iframe_figures
+*.log
