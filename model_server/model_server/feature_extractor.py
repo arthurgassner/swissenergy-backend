@@ -6,6 +6,8 @@ import pandas as pd
 
 
 class FeatureExtractor:
+    """Class responsible for extracted features out of the cleaned data."""
+
     def __init__(self) -> None:
         pass
 
@@ -19,11 +21,11 @@ class FeatureExtractor:
         That is, when we say "timedelta ago from now", we mean "timedelta ago from this timestamp".
 
         Args:
-            df (pd.DataFrame): Dataframe containing the `24h_later_load`, whose index refers to now when saying "24h later".
+            df (pd.DataFrame): Dataframe containing the `24h_later_load`, whose index refers to "now" when saying "24h later".
             timedelta (pd.Timedelta): Time delta of interest, i.e. how long ago do we want the load ?
 
         Returns:
-            pd.Series: Series whose index is the same as DatetimeIndex, and whose values are the loads `timedelta` time ago from their index.
+            pd.Series: Series whose index is the same as `df`, and whose values are the loads `timedelta` time ago from their index.
         """
 
         assert "24h_later_load" in df.columns
@@ -55,14 +57,15 @@ class FeatureExtractor:
     def _compute_stats(
         df: pd.DataFrame, timedelta: pd.Timedelta, stat: Callable
     ) -> pd.Series:
-        """For each timestamps in the index, compute the stat over the date comprised between now and timedelta ago.
+        """For each timestamps in the index, compute the `stat` over the date comprised between that timestamp and `timedelta` ago.
 
-        Assume that each row's index is the current timestamp.
-        That is, when we say "timedelta ago from now", we mean "timedelta ago from this timestamp".
+        Args:
+            df (pd.DataFrame): Dataframe containing the `24h_later_load`, whose index refers to "now" when saying "24h later".
+            timedelta (pd.Timedelta): Time delta of interest, i.e. over how much time should we compute the statistics
+            stat (Callable): Statistic function
 
-        df (pd.DataFrame): Dataframe containing the `24h_later_load`, whose index refers to now when saying "24h later".
-        timedelta (pd.Timedelta): Time delta of interest, i.e. how long ago do we want the statistics calculation to start ?
-        stats (list[func]): Functions of the statistic to compute
+        Returns:
+            pd.Series: Series whose index is the same as `df`, and whose values are the statistics computed over `timedelta`.
         """
 
         assert "24h_later_load" in df.columns
@@ -74,6 +77,13 @@ class FeatureExtractor:
 
     @staticmethod
     def extract_features(in_df_filepath: str, out_df_filepath: str) -> None:
+        """Extract the features.
+
+        Args:
+            in_df_filepath (str): Filepath of the dataframe whose features must be extracted (.parquet)
+            out_df_filepath (str): Filepath where to dump the extracted features (.parquet)
+        """
+
         # Load data
         df = pd.read_parquet(in_df_filepath, columns=["24h_later_load"])
 
