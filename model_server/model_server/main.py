@@ -52,7 +52,10 @@ def update_forecast(entsoe_api_key: str):
 
     # Extract features
     logger.info("Start extracting features...")
-
+    FeatureExtractor.extract_features(
+        in_df_filepath="data/silver/df.parquet",
+        out_df_filepath="data/gold/df.parquet",
+    )
     logger.info("Features extracted.")
 
     # Train
