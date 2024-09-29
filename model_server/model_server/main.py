@@ -1,16 +1,15 @@
-from fastapi import BackgroundTasks, FastAPI
+from fastapi import BackgroundTasks, FastAPI, Request
 from dotenv import load_dotenv
 import os
 import pandas as pd
-from datetime import datetime
-from pathlib import Path 
+from datetime import datetime, timedelta
 
 from .data_loader import DataLoader
 from .data_cleaner import DataCleaner
 from .feature_extractor import FeatureExtractor
 from .model import Model
 
-app = FastAPI(title="Data preparation")
+app = FastAPI(title="Data preparation")    
 
 def update_forecast(entsoe_api_key: str):
     # Update the bronze-layer data
@@ -64,13 +63,19 @@ async def get_latest_forecast():
         "predicted_24h_later_load": yhat["predicted_24h_later_load"].tolist(),
     }
 
-@app.get("/entsoe-loads")
-async def get_entsoe_loads():
+@app.post("/entsoe-loads")
+async def get_entsoe_loads(request: Request):
+    # Figure out till when the records should be sent, defaulting to a week ago
+    data = await request.json()
+    n_weeks_ago = data.get("n_weeks_ago", 1)
+    cutoff_dt = datetime.now() - timedelta(weeks=n_weeks_ago)
+    cutoff_ts = pd.Timestamp(cutoff_dt, tz='Europe/Zurich')
+
     # Load past loads
     silver_df = pd.read_parquet('data/silver/df.parquet')
 
-    # TODO make it a POST request instead of hardcoding a delay
-    silver_df = silver_df[silver_df.index > pd.Timestamp(datetime.now(), tz='Europe/Zurich') - pd.Timedelta(7, 'd')]
+    # Only keep the data till
+    silver_df = silver_df[silver_df.index >= cutoff_ts]
 
     return {
         "timestamps": silver_df.index.tolist(),
