@@ -8,11 +8,23 @@ from entsoe.exceptions import NoMatchingDataError
 
 class DataLoader:
     def __init__(self, entsoe_api_key: str) -> None:
+        """Create a new DataLoader instance.
+
+        Args:
+            entsoe_api_key (str): API key used to downloaded data from the ENTSO-E website.
+                                  See https://transparency.entsoe.eu/content/static_content/Static%20content/web%20api/Guide.html
+        """
         self._entsoe_pandas_client = EntsoePandasClient(
             api_key=entsoe_api_key
         )  # Get API key through website, after kindly asking the support
 
     def update_df(self, out_df_filepath: str) -> None:
+        """Update the currently-on-disk dataframe (.parquet)
+        by downloading -- through the ENTSO-E API -- the rows whose timestamps are after the latest on-disk timestamp.
+
+        Args:
+            out_df_filepath (str): Filepath where the dataframe (.parquet) should be stored.
+        """
         # Load already-downloaded data
         current_df = pd.DataFrame()
         if Path(out_df_filepath).is_file():
@@ -42,7 +54,7 @@ class DataLoader:
         current_df = pd.concat([current_df, fetched_df], axis=0)
 
         # Dump to output df
-        Path(out_df_filepath).parent.mkdir(
+        Path(out_df_filepath).parent.mkdir(  # Ensure the folderpath exists
             parents=True, exist_ok=True
-        )  # Ensure the folderpath exists
+        )
         current_df.to_parquet(out_df_filepath)

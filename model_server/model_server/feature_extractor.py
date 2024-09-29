@@ -18,8 +18,12 @@ class FeatureExtractor:
         Assume that each row's index is the current timestamp.
         That is, when we say "timedelta ago from now", we mean "timedelta ago from this timestamp".
 
-        df (pd.DataFrame): Dataframe containing the `24h_later_load`, whose index refers to now when saying "24h later".
-        timedelta (pd.Timedelta): Time delta of interest, i.e. how long ago do we want the load ?
+        Args:
+            df (pd.DataFrame): Dataframe containing the `24h_later_load`, whose index refers to now when saying "24h later".
+            timedelta (pd.Timedelta): Time delta of interest, i.e. how long ago do we want the load ?
+
+        Returns:
+            pd.Series: Series whose index is the same as DatetimeIndex, and whose values are the loads `timedelta` time ago from their index.
         """
 
         assert "24h_later_load" in df.columns

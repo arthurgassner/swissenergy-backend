@@ -9,6 +9,12 @@ class DataCleaner:
 
     @staticmethod
     def clean(in_df_filepath: str, out_df_filepath: str) -> None:
+        """Clean the dataframe (.parquet) and dump the cleaned version to disk.
+
+        Args:
+            in_df_filepath (str): Filesystem location of the dirty dataframe (.parquet)
+            out_df_filepath (str): Filesystem location where the cleaned dataframe will be dumped.
+        """
         # Load dataframe to be cleaned
         df = pd.read_parquet(in_df_filepath)
 
@@ -26,7 +32,7 @@ class DataCleaner:
         )
 
         # Dump to output dataframe filepath
-        Path(out_df_filepath).parent.mkdir(
+        Path(out_df_filepath).parent.mkdir(  # Ensure the folderpath exists
             parents=True, exist_ok=True
-        )  # Ensure the folderpath exists
+        )
         df.to_parquet(out_df_filepath)
