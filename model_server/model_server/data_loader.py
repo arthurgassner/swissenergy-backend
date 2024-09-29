@@ -7,11 +7,13 @@ from entsoe.exceptions import NoMatchingDataError
 
 
 class DataLoader:
+    """Class responsible for downloading the data from the ENTSO-E servers."""
+
     def __init__(self, entsoe_api_key: str) -> None:
         """Create a new DataLoader instance.
 
         Args:
-            entsoe_api_key (str): API key used to downloaded data from the ENTSO-E website.
+            entsoe_api_key (str): API key used to download data from the ENTSO-E servers.
                                   See https://transparency.entsoe.eu/content/static_content/Static%20content/web%20api/Guide.html
         """
         self._entsoe_pandas_client = EntsoePandasClient(
