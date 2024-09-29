@@ -30,18 +30,17 @@ def update_forecast(entsoe_api_key: str):
 
     # Train 
     model = Model(model_filepath='data/model.joblib')
-    model.train(Xy_filepath='data/gold/df.parquet', n_estimators=100)
+    model.train(Xy_filepath='data/gold/df.parquet', n_estimators=10)
 
     # Backtest model
-    _, mape = model.backtest(
+    _, mape_24h = model.backtest(
         Xy_filepath='data/gold/df.parquet',
-        starting_ts=pd.Timestamp(datetime.now() - pd.Timedelta(30, 'd'), tz='Europe/Zurich'),
-        use_every_nth_ts=100,
+        starting_ts=pd.Timestamp(datetime.now() - timedelta(hours=24), tz='Europe/Zurich'),
+        use_every_nth_ts=1,
     )
-    print(f'Backtested MAPE: {mape:.2f}%')
 
     # Predict    
-    model.train(Xy_filepath='data/gold/df.parquet', n_estimators=100)
+    model.train(Xy_filepath='data/gold/df.parquet', n_estimators=10)
     model.predict(
         in_df_filepath='data/gold/df.parquet', 
         out_yhat_filepath='data/yhat.parquet',
