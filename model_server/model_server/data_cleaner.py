@@ -4,6 +4,8 @@ import pandas as pd
 
 
 class DataCleaner:
+    """Class responsible for cleaning the data downloaded from the ENTSO-E servers."""
+
     def __init__(self) -> None:
         pass
 
