@@ -21,39 +21,58 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="Data preparation")    
 
 def update_forecast(entsoe_api_key: str):
+
     # Update the bronze-layer data
+    logger.info("Start downloading data from the ENTSO-E service...")
+
     data_loader = DataLoader(entsoe_api_key=entsoe_api_key)
     data_loader.update_df(out_df_filepath="data/bronze/df.parquet")
 
+    logger.info("Data downloaded.")
+
     # Clean the bronze-layer data
+    logger.info("Start cleaning the downloaded data...")
+
     DataCleaner.clean(
         in_df_filepath='data/bronze/df.parquet',
         out_df_filepath='data/silver/df.parquet',
     )
 
+    logger.info("Data cleaned.")
+
     # Extract features
+    logger.info("Start extracting features...")
     FeatureExtractor.extract_features(
         in_df_filepath='data/silver/df.parquet',
         out_df_filepath='data/gold/df.parquet',
     )
+    logger.info("Features extracted.")
 
     # Train 
+    logger.info("Start training model...")
+
     model = Model(model_filepath='data/model.joblib')
     model.train(Xy_filepath='data/gold/df.parquet', n_estimators=10)
 
+    logger.info("Training done.")
+
     # Backtest model
+    logger.info("Start back-testing the model...")
     _, mape_24h = model.backtest(
         Xy_filepath='data/gold/df.parquet',
         starting_ts=pd.Timestamp(datetime.now() - timedelta(hours=24), tz='Europe/Zurich'),
         use_every_nth_ts=1,
     )
+    logger.info("Back-testing done.")
 
-    # Predict    
+    # Predict   
+    logger.info("Start forecasting the load for the next 24h...") 
     model.train(Xy_filepath='data/gold/df.parquet', n_estimators=10)
     model.predict(
         in_df_filepath='data/gold/df.parquet', 
         out_yhat_filepath='data/yhat.parquet',
     )
+    logger.info("Forecasting done.") 
 
 
 @app.get("/update-forecast")
