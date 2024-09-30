@@ -96,6 +96,7 @@ class DataLoader:
             start_ts=latest_available_ts
             + pd.Timedelta(1, "m")  # right after (i.e. 1min) the latest ts
         )
+
         # Append the newly-fetched data to the current data
         current_df = pd.concat([current_df, fetched_df], axis=0)
 
