@@ -32,12 +32,14 @@ class DataLoader:
         if Path(out_df_filepath).is_file():
             current_df = pd.read_parquet(out_df_filepath)
 
-        # Figure out the timestamp of the latest-available row
+        # Figure out the timestamp of the latest-available Actual Load row
         latest_available_ts = pd.Timestamp(
             "20140101", tz="Europe/Zurich"
         )  # Very early ts
         if len(current_df):
-            latest_available_ts = current_df.index.max()
+            latest_available_ts = current_df[
+                ~current_df["Actual Load"].isna()
+            ].index.max()
 
         # Fetch loads and forecasts
         end_ts = pd.Timestamp(datetime.now(), tz="Europe/Zurich") + pd.Timedelta(1, "d")
