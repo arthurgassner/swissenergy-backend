@@ -29,14 +29,16 @@ class DataLoader:
 
         Returns:
             pd.Timestamp: Latest-available timestamp with non-NaN 'Actual Load'.
-                          pd.TimeStamp('20140101', tz="Europe/Zurich") if `df` is empty.
+                          pd.TimeStamp('20140101 00:00', tz="Europe/Zurich") if `df` is empty.
         """
 
-        if len(df):
-            non_na_mask = ~df["Actual Load"].isna()
+        if (
+            "Actual Load" in df.columns
+            and (non_na_mask := ~df["Actual Load"].isna()).sum()
+        ):
             return df[non_na_mask].index.max()
 
-        return pd.Timestamp("20140101", tz="Europe/Zurich")
+        return pd.Timestamp("20140101 00:00", tz="Europe/Zurich")
 
     def update_df(self, out_df_filepath: str) -> None:
         """Update the currently-on-disk dataframe (.parquet)
