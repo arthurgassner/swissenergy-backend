@@ -10,6 +10,34 @@ class DataCleaner:
         pass
 
     @staticmethod
+    def _format(df: pd.DataFrame):
+        """Format `df` by
+        - Setting back its index by 24h, so that the columns refer to "the values in 24h"
+        - Renaming the columns to reflect this new format
+
+        Args:
+            df (pd.DataFrame): Dataframe to be formatted
+
+        Returns:
+            pd.DataFrame: Formatted dataframe
+        """
+
+        df = df.copy()
+
+        # Setback index by 24h
+        df.index -= pd.Timedelta(24, "h")
+
+        # rename the columns to reflect the new index
+        df = df.rename(
+            columns={
+                "Forecasted Load": "24h_later_forecast",
+                "Actual Load": "24h_later_load",
+            }
+        )
+
+        return df
+
+    @staticmethod
     def clean(in_df_filepath: str, out_df_filepath: str) -> None:
         """Clean the dataframe (.parquet) and dump the cleaned version to disk.
 
@@ -23,15 +51,7 @@ class DataCleaner:
         # Currently, the timestamp correponds to "in the next hour, this is the load"
         # whereas we want it to mean "the load 24h from this timestamp is"
         # Modify it so it fits
-        df = df.set_index(
-            df.index.to_series().apply(lambda x: x - pd.Timedelta(1, "d"))
-        )  # Update the index
-        df = df.rename(
-            columns={  # rename the columns to reflect the new index
-                "Forecasted Load": "24h_later_forecast",
-                "Actual Load": "24h_later_load",
-            }
-        )
+        df = DataCleaner._format(df=df)
 
         # Dump to output dataframe filepath
         Path(out_df_filepath).parent.mkdir(  # Ensure the folderpath exists

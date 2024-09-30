@@ -38,7 +38,7 @@ def test__get_latest_ts_with_actual_load__missing_actual_load():
 def test__get_latest_ts_with_actual_load():
     """Dataframe with an 'Actual Load' should return the timestamp of that row"""
 
-    # Given a df with no 'Actual Load' values
+    # Given a df with one 'Actual Load'
     df = pd.DataFrame(
         {
             "Forecasted Load": [7890.0, np.nan, np.nan],
