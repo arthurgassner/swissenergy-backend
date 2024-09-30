@@ -1,6 +1,10 @@
+import os
+from datetime import datetime, timedelta
+
 import numpy as np
 import pandas as pd
 import pytest
+from dotenv import load_dotenv
 
 from model_server.data_loader import DataLoader
 
@@ -8,7 +12,7 @@ from model_server.data_loader import DataLoader
 def test__get_latest_ts_with_actual_load__empty_dataframe():
     """Empty dataframe should return 2014-01-01 00:00"""
     excepted_ts = pd.Timestamp("20140101 00:00", tz="Europe/Zurich")
-    assert excepted_ts == DataLoader.get_latest_ts_with_actual_load(df=pd.DataFrame())
+    assert excepted_ts == DataLoader._get_latest_ts_with_actual_load(df=pd.DataFrame())
 
 
 def test__get_latest_ts_with_actual_load__missing_actual_load():
@@ -24,7 +28,7 @@ def test__get_latest_ts_with_actual_load__missing_actual_load():
     )
 
     # When
-    ts = DataLoader.get_latest_ts_with_actual_load(df=df)
+    ts = DataLoader._get_latest_ts_with_actual_load(df=df)
 
     # Then
     excepted_ts = pd.Timestamp("20140101 00:00", tz="Europe/Zurich")
@@ -50,8 +54,31 @@ def test__get_latest_ts_with_actual_load():
     )
 
     # When
-    ts = DataLoader.get_latest_ts_with_actual_load(df=df)
+    ts = DataLoader._get_latest_ts_with_actual_load(df=df)
 
     # Then
     excepted_ts = pd.Timestamp("20240201 23:45", tz="Europe/Zurich")
     assert excepted_ts == ts
+
+
+def test__query_load_and_forecast__future_ts():
+    """Querying the ENTSO-E API with a timestamp in the future should result in an empty df."""
+
+    # given
+    load_dotenv()
+    data_loader = DataLoader(entsoe_api_key=os.getenv("ENTSOE_API_KEY"))
+
+    # when
+    fetched_df = data_loader._query_load_and_forecast(
+        start_ts=pd.Timestamp(datetime.now() + timedelta(hours=24), tz="Europe/Zurich")
+    )
+
+    # then
+    expected_df = pd.DataFrame(
+        columns=["Forecasted Load", "Actual Load"],
+        dtype=float,
+        index=pd.DatetimeIndex([], dtype="datetime64[ns, Europe/Zurich]"),
+    )
+    assert (expected_df == fetched_df).all().all()
+    assert (expected_df.dtypes == fetched_df.dtypes).all()
+    assert (expected_df.index == fetched_df.index).all()

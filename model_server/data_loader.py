@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -28,14 +28,14 @@ class DataLoader:
         )  # Get API key through website, after kindly asking the support
 
     @staticmethod
-    def get_latest_ts_with_actual_load(df: pd.DataFrame) -> pd.Timestamp:
+    def _get_latest_ts_with_actual_load(df: pd.DataFrame) -> pd.Timestamp:
         """Get the timestamp of the latest-available row with a non-NaN 'Actual Load'.
 
         Args:
             df (pd.DataFrame): Dataframe whose latest-available timestamp with non-NaN 'Actual Load' we want
 
         Returns:
-            pd.Timestamp: Latest-available timestamp with non-NaN 'Actual Load'.
+            pd.Timestamp: Latest-available timestamp (tz="Europe/Zurich") with non-NaN 'Actual Load'.
                           pd.TimeStamp('20140101 00:00', tz="Europe/Zurich") if `df` is empty.
         """
 
@@ -46,6 +46,35 @@ class DataLoader:
             return df[non_na_mask].index.max()
 
         return pd.Timestamp("20140101 00:00", tz="Europe/Zurich")
+
+    def _query_load_and_forecast(self, start_ts: pd.Timestamp) -> pd.DataFrame:
+        """Query the ENTSO-E API for the load and forecast data from `start_ts` to now+24h.
+
+        Args:
+            start_ts (pd.Timestamp): Starting ts (tz="Europe/Zurich") of the requested data
+
+        Returns:
+            pd.DataFrame: Fetched data.
+                          - columns: ('Forcasted Load', 'Actual Load')
+                          - dtypes: float64
+                          - index: datetime64[ns, Europe/Zurich]
+                          Empty dataframe if no data could be found
+        """
+        end_ts = pd.Timestamp(datetime.now() + timedelta(hours=24), tz="Europe/Zurich")
+
+        try:
+            fetched_df = self._entsoe_pandas_client.query_load_and_forecast(
+                country_code="CH", start=start_ts, end=end_ts
+            )
+        except NoMatchingDataError:
+            logger.warning(f"No data available between {start_ts} -> {end_ts}")
+            fetched_df = pd.DataFrame(
+                columns=["Forecasted Load", "Actual Load"],
+                dtype=float,
+                index=pd.DatetimeIndex([], dtype="datetime64[ns, Europe/Zurich]"),
+            )  # empty dataframe
+
+        return fetched_df
 
     def update_df(self, out_df_filepath: str) -> None:
         """Update the currently-on-disk dataframe (.parquet)
@@ -60,21 +89,13 @@ class DataLoader:
             current_df = pd.read_parquet(out_df_filepath)
 
         # Figure out the timestamp of the latest-available row with a non-NaN 'Actual Load'
-        latest_available_ts = DataLoader.get_latest_ts_with_actual_load(df=current_df)
+        latest_available_ts = DataLoader._get_latest_ts_with_actual_load(df=current_df)
 
         # Fetch loads and forecasts
-        end_ts = pd.Timestamp(datetime.now(), tz="Europe/Zurich") + pd.Timedelta(1, "d")
-        start_ts = latest_available_ts + pd.Timedelta(
-            1, "m"
-        )  # start right after (i.e. 1min) the latest ts
-        fetched_df = pd.DataFrame()
-        try:
-            fetched_df = self._entsoe_pandas_client.query_load_and_forecast(
-                country_code="CH", start=start_ts, end=end_ts
-            )
-        except NoMatchingDataError:
-            logger.warning(f"No data available between {start_ts} -> {end_ts}")
-
+        fetched_df = self._query_load_and_forecast(
+            start_ts=latest_available_ts
+            + pd.Timedelta(1, "m")  # right after (i.e. 1min) the latest ts
+        )
         # Append the newly-fetched data to the current data
         current_df = pd.concat([current_df, fetched_df], axis=0)
 
