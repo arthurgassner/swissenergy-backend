@@ -20,6 +20,24 @@ class DataLoader:
             api_key=entsoe_api_key
         )  # Get API key through website, after kindly asking the support
 
+    @staticmethod
+    def get_latest_ts_with_actual_load(df: pd.DataFrame) -> pd.Timestamp:
+        """Get the timestamp of the latest-available row with a non-NaN 'Actual Load'.
+
+        Args:
+            df (pd.DataFrame): Dataframe whose latest-available timestamp with non-NaN 'Actual Load' we want
+
+        Returns:
+            pd.Timestamp: Latest-available timestamp with non-NaN 'Actual Load'.
+                          pd.TimeStamp('20140101', tz="Europe/Zurich") if `df` is empty.
+        """
+
+        if len(df):
+            non_na_mask = ~df["Actual Load"].isna()
+            return df[non_na_mask].index.max()
+
+        return pd.Timestamp("20140101", tz="Europe/Zurich")
+
     def update_df(self, out_df_filepath: str) -> None:
         """Update the currently-on-disk dataframe (.parquet)
         by downloading -- through the ENTSO-E API -- the rows whose timestamps are after the latest on-disk timestamp.
@@ -32,14 +50,8 @@ class DataLoader:
         if Path(out_df_filepath).is_file():
             current_df = pd.read_parquet(out_df_filepath)
 
-        # Figure out the timestamp of the latest-available Actual Load row
-        latest_available_ts = pd.Timestamp(
-            "20140101", tz="Europe/Zurich"
-        )  # Very early ts
-        if len(current_df):
-            latest_available_ts = current_df[
-                ~current_df["Actual Load"].isna()
-            ].index.max()
+        # Figure out the timestamp of the latest-available row with a non-NaN 'Actual Load'
+        latest_available_ts = DataLoader.get_latest_ts_with_actual_load(df=current_df)
 
         # Fetch loads and forecasts
         end_ts = pd.Timestamp(datetime.now(), tz="Europe/Zurich") + pd.Timedelta(1, "d")
