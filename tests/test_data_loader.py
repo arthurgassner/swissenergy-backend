@@ -79,6 +79,33 @@ def test__query_load_and_forecast__future_ts():
         dtype=float,
         index=pd.DatetimeIndex([], dtype="datetime64[ns, Europe/Zurich]"),
     )
+    assert (expected_df == fetched_df).all().all()  # same values
+    assert all(
+        c1 == c2 for c1, c2 in zip(expected_df.columns, fetched_df.columns)
+    )  # same column names
+    assert (expected_df.dtypes == fetched_df.dtypes).all()  # same dtypes
+    assert (expected_df.index == fetched_df.index).all()  # same index
+
+
+def test__query_load_and_forecast__24h_ago_ts():
+    """Querying the ENTSO-E API with a timestamp 24h ago."""
+
+    # given
+    load_dotenv()
+    data_loader = DataLoader(entsoe_api_key=os.getenv("ENTSOE_API_KEY"))
+
+    # when
+    fetched_df = data_loader._query_load_and_forecast(
+        start_ts=pd.Timestamp(datetime.now() + timedelta(hours=24), tz="Europe/Zurich")
+    )
+
+    # then
+    expected_df = pd.DataFrame(
+        columns=["Forecasted Load", "Actual Load"],
+        dtype=float,
+        index=pd.DatetimeIndex([], dtype="datetime64[ns, Europe/Zurich]"),
+    )
     assert (expected_df == fetched_df).all().all()
+    assert all(c1 == c2 for c1, c2 in zip(expected_df.columns, fetched_df.columns))
     assert (expected_df.dtypes == fetched_df.dtypes).all()
     assert (expected_df.index == fetched_df.index).all()
