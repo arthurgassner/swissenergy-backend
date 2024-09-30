@@ -62,7 +62,7 @@ def test__get_latest_ts_with_actual_load():
 
 
 def test__query_load_and_forecast__future_ts():
-    """Querying the ENTSO-E API with a timestamp in the future should result in an empty df."""
+    """Querying the ENTSO-E API with a timestamp 48h in the future should result in an empty df."""
 
     # given
     load_dotenv()
@@ -70,7 +70,7 @@ def test__query_load_and_forecast__future_ts():
 
     # when
     fetched_df = data_loader._query_load_and_forecast(
-        start_ts=pd.Timestamp(datetime.now() + timedelta(hours=24), tz="Europe/Zurich")
+        start_ts=pd.Timestamp(datetime.now() + timedelta(hours=48), tz="Europe/Zurich")
     )
 
     # then
@@ -108,3 +108,9 @@ def test__query_load_and_forecast__24h_ago_ts():
     assert (fetched_df.dtypes == "float64").all()  # correct dtype
     assert isinstance(fetched_df.index, pd.DatetimeIndex)
     assert fetched_df.index.dtype == "datetime64[ns, Europe/Zurich]"  # correct timezone
+    assert (
+        len(fetched_df) <= 48
+    )  # data is hourly, so we should not have more than 48 datapoints
+    assert (
+        fetched_df["Actual Load"].isna().sum() >= 24
+    )  # at least 24 of those datapoints should be NaN
