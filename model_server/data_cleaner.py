@@ -50,7 +50,6 @@ class DataCleaner:
 
         # Currently, the timestamp correponds to "in the next hour, this is the load"
         # whereas we want it to mean "the load 24h from this timestamp is"
-        # Modify it so it fits
         df = DataCleaner._format(df=df)
 
         # Dump to output dataframe filepath
