@@ -105,5 +105,6 @@ def test__query_load_and_forecast__24h_ago_ts():
         fetched_df.columns[0] == "Forecasted Load"
         and fetched_df.columns[1] == "Actual Load"
     )
-    assert (fetched_df.dtypes == "float64").all()
-    assert fetched_df.index.dtype == "datetime64[ns, Europe/Zurich]"
+    assert (fetched_df.dtypes == "float64").all()  # correct dtype
+    assert isinstance(fetched_df.index, pd.DatetimeIndex)
+    assert fetched_df.index.dtype == "datetime64[ns, Europe/Zurich]"  # correct timezone
