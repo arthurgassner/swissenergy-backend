@@ -96,16 +96,14 @@ def test__query_load_and_forecast__24h_ago_ts():
 
     # when
     fetched_df = data_loader._query_load_and_forecast(
-        start_ts=pd.Timestamp(datetime.now() + timedelta(hours=24), tz="Europe/Zurich")
+        start_ts=pd.Timestamp(datetime.now() - timedelta(hours=24), tz="Europe/Zurich")
     )
 
     # then
-    expected_df = pd.DataFrame(
-        columns=["Forecasted Load", "Actual Load"],
-        dtype=float,
-        index=pd.DatetimeIndex([], dtype="datetime64[ns, Europe/Zurich]"),
+    assert len(fetched_df.columns) == 2  # 2 columns
+    assert (
+        fetched_df.columns[0] == "Forecasted Load"
+        and fetched_df.columns[1] == "Actual Load"
     )
-    assert (expected_df == fetched_df).all().all()
-    assert all(c1 == c2 for c1, c2 in zip(expected_df.columns, fetched_df.columns))
-    assert (expected_df.dtypes == fetched_df.dtypes).all()
-    assert (expected_df.index == fetched_df.index).all()
+    assert (fetched_df.dtypes == "float64").all()
+    assert fetched_df.index.dtype == "datetime64[ns, Europe/Zurich]"
