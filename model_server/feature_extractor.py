@@ -58,12 +58,12 @@ class FeatureExtractor:
         """Extract the features.
 
         Args:
-            in_df_filepath (str): Filepath of the dataframe whose features must be extracted (.parquet)
-            out_df_filepath (str): Filepath where to dump the extracted features (.parquet)
+            in_df_filepath (str): Filepath of the dataframe whose features must be extracted (.pickle)
+            out_df_filepath (str): Filepath where to dump the extracted features (.pickle)
         """
 
         # Load data
-        df = pd.read_parquet(in_df_filepath, columns=["24h_later_load"])
+        df = pd.read_pickle(in_df_filepath)[["24h_later_load"]]
 
         # Enrich the df with the datetime attributes
         df["year"] = df.index.year
@@ -127,4 +127,4 @@ class FeatureExtractor:
         Path(out_df_filepath).parent.mkdir(
             parents=True, exist_ok=True
         )  # Ensure the folderpath exists
-        df.to_parquet(out_df_filepath)
+        df.to_pickle(out_df_filepath)

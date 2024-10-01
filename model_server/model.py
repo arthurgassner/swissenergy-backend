@@ -23,7 +23,7 @@ class Model:
 
     def train(self, Xy_filepath: str) -> None:
         # Prepare training data
-        Xy = pd.read_parquet(Xy_filepath)
+        Xy = pd.read_pickle(Xy_filepath)
         assert "24h_later_load" in Xy.columns
         Xy = Xy.dropna(  # Only train on data for which we have the target
             subset=("24h_later_load")
@@ -51,7 +51,7 @@ class Model:
         model = joblib.load(self._model_filepath)  # Load model
 
         # Prepare training data
-        Xy = pd.read_parquet(Xy_filepath)
+        Xy = pd.read_pickle(Xy_filepath)
         assert "24h_later_load" in Xy.columns
         Xy = Xy.dropna(
             subset=("24h_later_load")
@@ -108,7 +108,7 @@ class Model:
         model = joblib.load(self._model_filepath)  # Load model
 
         # Load data
-        df = pd.read_parquet(in_df_filepath)
+        df = pd.read_pickle(in_df_filepath)
 
         # Figure out the timestamps of the next 24h for which we have features
         starting_ts = df.index.max() - pd.Timedelta(1, "d")
@@ -128,6 +128,6 @@ class Model:
         Path(out_yhat_filepath).parent.mkdir(
             parents=True, exist_ok=True
         )  # Ensure the folderpath exists
-        yhat.to_parquet(out_yhat_filepath)
+        yhat.to_pickle(out_yhat_filepath)
 
         return yhat

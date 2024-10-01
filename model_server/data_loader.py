@@ -77,16 +77,16 @@ class DataLoader:
         return fetched_df
 
     def update_df(self, out_df_filepath: str) -> None:
-        """Update the currently-on-disk dataframe (.parquet)
+        """Update the currently-on-disk dataframe (.pickle)
         by downloading -- through the ENTSO-E API -- the rows whose timestamps are after the latest on-disk timestamp.
 
         Args:
-            out_df_filepath (str): Filepath where the dataframe (.parquet) should be stored.
+            out_df_filepath (str): Filepath where the dataframe (.pickle) should be stored.
         """
         # Load already-downloaded data
         current_df = pd.DataFrame()
         if Path(out_df_filepath).is_file():
-            current_df = pd.read_parquet(out_df_filepath)
+            current_df = pd.read_pickle(out_df_filepath)
 
         # Figure out the timestamp of the latest-available row with a non-NaN 'Actual Load'
         latest_available_ts = DataLoader._get_latest_ts_with_actual_load(df=current_df)
@@ -107,4 +107,4 @@ class DataLoader:
         Path(out_df_filepath).parent.mkdir(  # Ensure the folderpath exists
             parents=True, exist_ok=True
         )
-        current_df.to_parquet(out_df_filepath)
+        current_df.to_pickle(out_df_filepath)

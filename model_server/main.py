@@ -36,7 +36,7 @@ def update_forecast(entsoe_api_key: str):
     logger.info("Start downloading data from the ENTSO-E service...")
 
     data_loader = DataLoader(entsoe_api_key=entsoe_api_key)
-    data_loader.update_df(out_df_filepath="data/bronze/df.parquet")
+    data_loader.update_df(out_df_filepath="data/bronze/df.pickle")
 
     logger.info("Data downloaded.")
 
@@ -44,8 +44,8 @@ def update_forecast(entsoe_api_key: str):
     logger.info("Start cleaning the downloaded data...")
 
     DataCleaner.clean(
-        in_df_filepath="data/bronze/df.parquet",
-        out_df_filepath="data/silver/df.parquet",
+        in_df_filepath="data/bronze/df.pickle",
+        out_df_filepath="data/silver/df.pickle",
     )
 
     logger.info("Data cleaned.")
@@ -53,8 +53,8 @@ def update_forecast(entsoe_api_key: str):
     # Extract features
     logger.info("Start extracting features...")
     FeatureExtractor.extract_features(
-        in_df_filepath="data/silver/df.parquet",
-        out_df_filepath="data/gold/df.parquet",
+        in_df_filepath="data/silver/df.pickle",
+        out_df_filepath="data/gold/df.pickle",
     )
     logger.info("Features extracted.")
 
@@ -62,21 +62,21 @@ def update_forecast(entsoe_api_key: str):
     logger.info("Start training model...")
 
     model = Model(model_filepath="data/model.joblib", n_estimators=1_000)
-    model.train(Xy_filepath="data/gold/df.parquet")
+    model.train(Xy_filepath="data/gold/df.pickle")
 
     logger.info("Training done.")
 
     # Backtest model
     logger.info("Start back-testing the model...")
     _, mape_24h = model.backtest(
-        Xy_filepath="data/gold/df.parquet",
+        Xy_filepath="data/gold/df.pickle",
         timedelta=pd.Timedelta(24, "h"),
         use_every_nth_ts=1,
     )
     logger.info(f"MAPE over the last 24h: {mape_24h}")
 
     _, approximated_mape_7d = model.backtest(
-        Xy_filepath="data/gold/df.parquet",
+        Xy_filepath="data/gold/df.pickle",
         timedelta=pd.Timedelta(7, "d"),
         use_every_nth_ts=20,
     )
@@ -85,10 +85,10 @@ def update_forecast(entsoe_api_key: str):
 
     # Predict
     logger.info("Start forecasting the load for the next 24h...")
-    model.train(Xy_filepath="data/gold/df.parquet")
+    model.train(Xy_filepath="data/gold/df.pickle")
     model.predict(
-        in_df_filepath="data/gold/df.parquet",
-        out_yhat_filepath="data/yhat.parquet",
+        in_df_filepath="data/gold/df.pickle",
+        out_yhat_filepath="data/yhat.pickle",
     )
     logger.info("Forecasting done.")
 
@@ -110,7 +110,7 @@ async def get_latest_forecast():
     logger.info("Received GET /latest-forecast")
 
     # Load latest forecast
-    yhat = pd.read_parquet("data/yhat.parquet")
+    yhat = pd.read_pickle("data/yhat.pickle")
     latest_forecasts = {
         "timestamps": yhat.index.tolist(),
         "predicted_24h_later_load": yhat["predicted_24h_later_load"].tolist(),
@@ -135,7 +135,7 @@ async def get_entsoe_loads(week_counter: WeekCounter):
     cutoff_ts = pd.Timestamp(cutoff_dt, tz="Europe/Zurich")
 
     # Load past loads
-    silver_df = pd.read_parquet("data/silver/df.parquet")
+    silver_df = pd.read_pickle("data/silver/df.pickle")
 
     # Only keep the data till
     silver_df = silver_df[silver_df.index >= cutoff_ts]
