@@ -158,3 +158,36 @@ def test__rolling_window__1h_window():
     np.testing.assert_equal(df["1h_min"].values, df["1h_ago_load"].values)
     np.testing.assert_equal(df["1h_max"].values, df["1h_ago_load"].values)
     np.testing.assert_equal(df["1h_median"].values, df["1h_ago_load"].values)
+
+
+def test__rolling_window__2h_window():
+    """Check that computing the rolling window with a window-size of 2h gives the expected values."""
+    # Given a df 48h of loads
+    df = pd.DataFrame(
+        {
+            "24h_later_forecast": [np.nan] * 48,
+            "24h_later_load": list(range(48)),
+        },
+        index=pd.DatetimeIndex(
+            pd.date_range(
+                start=pd.Timestamp("20240115 12:00", tz="Europe/Zurich"),
+                periods=48,
+                freq="h",
+            )
+        ),
+    )
+
+    # When
+    df["2h_min"] = FeatureExtractor._rolling_window(df, n_hours=2, stat=np.min)
+    df["2h_max"] = FeatureExtractor._rolling_window(df, n_hours=2, stat=np.max)
+    df["2h_median"] = FeatureExtractor._rolling_window(df, n_hours=2, stat=np.median)
+
+    # Then
+
+    # We know this, since we know the '24h_later_load' starting at 2024-01-15 12:00
+    # Hence we know that the load was 0 (12:00 -> 13:00) and then 1 (12:00 -> 13:00)
+    assert df.loc[pd.Timestamp("20240116 14:00", tz="Europe/Zurich"), "2h_min"] == 0
+    assert df.loc[pd.Timestamp("20240116 14:00", tz="Europe/Zurich"), "2h_max"] == 1
+    assert (
+        df.loc[pd.Timestamp("20240116 14:00", tz="Europe/Zurich"), "2h_median"] == 0.5
+    )
