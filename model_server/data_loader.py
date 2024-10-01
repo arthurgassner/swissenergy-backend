@@ -100,6 +100,9 @@ class DataLoader:
         # Append the newly-fetched data to the current data
         current_df = pd.concat([current_df, fetched_df], axis=0)
 
+        # TODO investigate why that is necessary
+        current_df = current_df.drop_duplicates()
+
         # Dump to output df
         Path(out_df_filepath).parent.mkdir(  # Ensure the folderpath exists
             parents=True, exist_ok=True
