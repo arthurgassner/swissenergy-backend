@@ -191,3 +191,39 @@ def test__rolling_window__2h_window():
     assert (
         df.loc[pd.Timestamp("20240116 14:00", tz="Europe/Zurich"), "2h_median"] == 0.5
     )
+
+
+def test__rolling_window__3h_window_with_nan():
+    """Check that computing the rolling window with a window-size of 3h with nan gives the expected values."""
+    # Given a df 48h of loads
+    df = pd.DataFrame(
+        {
+            "24h_later_forecast": [np.nan] * 48,
+            "24h_later_load": [np.nan] + list(range(1, 48)),
+        },
+        index=pd.DatetimeIndex(
+            pd.date_range(
+                start=pd.Timestamp("20240115 12:00", tz="Europe/Zurich"),
+                periods=48,
+                freq="h",
+            )
+        ),
+    )
+
+    # When
+    df["3h_min"] = FeatureExtractor._rolling_window(df, n_hours=3, stat=np.nanmin)
+    df["3h_max"] = FeatureExtractor._rolling_window(df, n_hours=3, stat=np.nanmax)
+    df["3h_median"] = FeatureExtractor._rolling_window(df, n_hours=3, stat=np.nanmedian)
+
+    # Then
+
+    # We know this, since we know the '24h_later_load' starting at 2024-01-15 12:00
+    # Hence we know that the load was
+    # - nan (12:00 -> 13:00)
+    # - 1 (13:00 -> 14:00)
+    # - 2 (14:00 -> 15:00)
+    assert df.loc[pd.Timestamp("20240116 15:00", tz="Europe/Zurich"), "3h_min"] == 1
+    assert df.loc[pd.Timestamp("20240116 15:00", tz="Europe/Zurich"), "3h_max"] == 2
+    assert (
+        df.loc[pd.Timestamp("20240116 15:00", tz="Europe/Zurich"), "3h_median"] == 1.5
+    )

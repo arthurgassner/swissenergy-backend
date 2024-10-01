@@ -51,7 +51,7 @@ class FeatureExtractor:
 
         # Compute the last-hour load for each row
         last_hour_loads = FeatureExtractor._n_hours_ago_load(df, n_hours=1)
-        return last_hour_loads.rolling(window=n_hours).apply(stat)
+        return last_hour_loads.rolling(window=n_hours, min_periods=1).apply(stat)
 
     @staticmethod
     def extract_features(in_df_filepath: str, out_df_filepath: str) -> None:
@@ -80,47 +80,26 @@ class FeatureExtractor:
         df["7d_ago_load"] = FeatureExtractor._n_hours_ago_load(df, n_hours=7 * 24)
 
         # Enrich the df with statistics
-        df["8h_min"] = FeatureExtractor._rolling_window(df, n_hours=8, stat=np.min)
-        df["8h_max"] = FeatureExtractor._rolling_window(df, n_hours=8, stat=np.max)
+        df["8h_min"] = FeatureExtractor._rolling_window(df, n_hours=8, stat=np.nanmin)
+        df["8h_max"] = FeatureExtractor._rolling_window(df, n_hours=8, stat=np.nanmax)
         df["8h_median"] = FeatureExtractor._rolling_window(
-            df, n_hours=8, stat=np.median
+            df, n_hours=8, stat=np.nanmedian
         )
 
-        df["24h_min"] = FeatureExtractor._rolling_window(df, n_hours=24, stat=np.min)
-        df["24h_max"] = FeatureExtractor._rolling_window(df, n_hours=24, stat=np.max)
+        df["24h_min"] = FeatureExtractor._rolling_window(df, n_hours=24, stat=np.nanmin)
+        df["24h_max"] = FeatureExtractor._rolling_window(df, n_hours=24, stat=np.nanmax)
         df["24h_median"] = FeatureExtractor._rolling_window(
-            df, n_hours=24, stat=np.median
+            df, n_hours=24, stat=np.nanmedian
         )
 
-        df["7d_min"] = FeatureExtractor._rolling_window(df, n_hours=7, stat=np.min)
-        df["7d_max"] = FeatureExtractor._rolling_window(df, n_hours=7, stat=np.max)
+        df["7d_min"] = FeatureExtractor._rolling_window(
+            df, n_hours=7 * 24, stat=np.nanmin
+        )
+        df["7d_max"] = FeatureExtractor._rolling_window(
+            df, n_hours=7 * 24, stat=np.nanmax
+        )
         df["7d_median"] = FeatureExtractor._rolling_window(
-            df, n_hours=7, stat=np.median
-        )
-
-        # Drop rows for which we could not compute features
-        df = df.dropna(
-            subset=[
-                "year",
-                "month",
-                "day",
-                "hour",
-                "weekday",  # daily attributes
-                "1h_ago_load",
-                "2h_ago_load",
-                "3h_ago_load",
-                "24h_ago_load",
-                "7d_ago_load",  # past loads
-                "8h_min",
-                "8h_max",
-                "8h_median",
-                "24h_min",
-                "24h_max",
-                "24h_median",
-                "7d_min",
-                "7d_max",
-                "7d_median",  # statistics
-            ]
+            df, n_hours=7 * 24, stat=np.nanmedian
         )
 
         # Dump to output df
