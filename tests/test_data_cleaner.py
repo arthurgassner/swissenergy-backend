@@ -34,9 +34,7 @@ def test__format():
     )
     assert (formatted_df.dtypes == "float64").all()  # correct dtype
     assert isinstance(formatted_df.index, pd.DatetimeIndex)
-    assert (
-        formatted_df.index.dtype == "datetime64[ns, Europe/Zurich]"
-    )  # correct timezone
-    assert (
-        df.index - formatted_df.index == pd.Timedelta(24, "h")
-    ).all()  # -24h delay post-formatting
+    # correct timezone
+    assert formatted_df.index.dtype == "datetime64[ns, Europe/Zurich]"
+    # -24h delay post-formatting
+    assert (df.index - formatted_df.index == pd.Timedelta(24, "h")).all()
