@@ -107,12 +107,10 @@ def test__query_load_and_forecast__24h_ago_ts():
         fetched_df.columns[0] == "Forecasted Load"
         and fetched_df.columns[1] == "Actual Load"
     )
-    assert (
-        len(fetched_df) <= 48
-    )  # data is hourly, so we should not have more than 48 datapoints
-    assert (
-        fetched_df["Actual Load"].isna().sum() >= 24
-    )  # at least 24 of those datapoints should be NaN
+    # data is hourly, so we should not have more than 48 datapoints
+    assert len(fetched_df) <= 48
+    # at least 24 of those datapoints should be NaN
+    assert fetched_df["Actual Load"].isna().sum() >= 24
 
     # index
     assert isinstance(fetched_df.index, pd.DatetimeIndex)
