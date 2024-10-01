@@ -70,7 +70,7 @@ class DataCleaner:
         df = DataCleaner._format(df=df)
 
         # Enforce 1h frequency
-        df = DataCleaner._force_frequency(df=df)
+        df = DataCleaner._force_1h_frequency(df=df)
 
         # Dump to output dataframe filepath
         Path(out_df_filepath).parent.mkdir(  # Ensure the folderpath exists
