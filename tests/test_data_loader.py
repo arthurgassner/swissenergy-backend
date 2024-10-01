@@ -116,9 +116,9 @@ def test__query_load_and_forecast__24h_ago_ts():
 
     # index
     assert isinstance(fetched_df.index, pd.DatetimeIndex)
-    assert fetched_df.index.dtype == "datetime64[ns, Europe/Zurich]"  # correct timezone
     assert fetched_df.index.is_monotonic_increasing
     assert fetched_df.index.is_unique
 
     # dtypes
     assert (fetched_df.dtypes == "float64").all()  # correct dtype
+    assert fetched_df.index.dtype == "datetime64[ns, Europe/Zurich]"  # correct timezone
