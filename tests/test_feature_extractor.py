@@ -5,7 +5,7 @@ import pytest
 from model_server.feature_extractor import FeatureExtractor
 
 
-def test__timedelta_ago_load__0h_ago():
+def test__n_hours_ago_load__0h_ago():
     """Check that we can enrich the data with the load between now and now+1h."""
     # Given a df 48h of loads
     df = pd.DataFrame(
@@ -23,9 +23,7 @@ def test__timedelta_ago_load__0h_ago():
     )
 
     # When
-    df["0h_ago_load"] = FeatureExtractor._compute_timedelta_ago_load(
-        df, timedelta=pd.Timedelta(0, "h")
-    )
+    df["0h_ago_load"] = FeatureExtractor._n_hours_ago_load(df, n_hours=0)
 
     # Then
 
@@ -49,7 +47,7 @@ def test__timedelta_ago_load__0h_ago():
     )
 
 
-def test__timedelta_ago_load__1h_ago():
+def test__n_hours_ago_load__1h_ago():
     """Check that we can enrich the data with the load between '1h ago' and 'now'."""
     # Given a df 48h of loads
     df = pd.DataFrame(
@@ -67,9 +65,7 @@ def test__timedelta_ago_load__1h_ago():
     )
 
     # When
-    df["1h_ago_load"] = FeatureExtractor._compute_timedelta_ago_load(
-        df, timedelta=pd.Timedelta(1, "h")
-    )
+    df["1h_ago_load"] = FeatureExtractor._n_hours_ago_load(df, n_hours=1)
 
     # Then
 
@@ -93,7 +89,7 @@ def test__timedelta_ago_load__1h_ago():
     )
 
 
-def test__timedelta_ago_load__8h_ago():
+def test__n_hours_ago_load__8h_ago():
     """Check that we can enrich the data with the load between '8h ago' and '7h ago'."""
     # Given a df 48h of loads
     df = pd.DataFrame(
@@ -111,9 +107,7 @@ def test__timedelta_ago_load__8h_ago():
     )
 
     # When
-    df["8h_ago_load"] = FeatureExtractor._compute_timedelta_ago_load(
-        df, timedelta=pd.Timedelta(8, "h")
-    )
+    df["8h_ago_load"] = FeatureExtractor._n_hours_ago_load(df, n_hours=8)
 
     # Then
 

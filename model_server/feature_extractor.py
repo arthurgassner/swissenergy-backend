@@ -12,9 +12,7 @@ class FeatureExtractor:
         pass
 
     @staticmethod
-    def _compute_timedelta_ago_load(
-        df: pd.DataFrame, timedelta: pd.Timedelta
-    ) -> pd.Series:
+    def _n_hours_ago_load(df: pd.DataFrame, n_hours: int) -> pd.Series:
         """For each timestamps in the index, compute the load timedelta ago
 
         Assume that each row's index is the current timestamp.
@@ -30,11 +28,9 @@ class FeatureExtractor:
 
         assert "24h_later_load" in df.columns
         assert isinstance(df.index, pd.DatetimeIndex)
+        assert df.index.freq == "h"
 
-        ts_to_24h_later_load = df["24h_later_load"].to_dict()
-        return df.index.to_series().apply(
-            lambda x: ts_to_24h_later_load.get(x - pd.Timedelta(24, "h") - timedelta)
-        )
+        return df["24h_later_load"].shift(24 + n_hours)
 
     @staticmethod
     def _compute_stat(
