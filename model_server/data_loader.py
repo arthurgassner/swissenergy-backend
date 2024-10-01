@@ -23,9 +23,8 @@ class DataLoader:
             logger.error(f"Missing `entsoe_api_key`.")
             raise ValueError
 
-        self._entsoe_pandas_client = EntsoePandasClient(
-            api_key=entsoe_api_key
-        )  # Get API key through website, after kindly asking the support
+        # Get API key through website, after kindly asking the support
+        self._entsoe_pandas_client = EntsoePandasClient(api_key=entsoe_api_key)
 
     @staticmethod
     def _get_latest_ts_with_actual_load(df: pd.DataFrame) -> pd.Timestamp:
@@ -84,7 +83,10 @@ class DataLoader:
             out_df_filepath (str): Filepath where the dataframe (.pickle) should be stored.
         """
         # Load already-downloaded data
-        current_df = pd.DataFrame()
+        current_df = pd.DataFrame(
+            {"Forecasted Load": [], "Actual Load": []},
+            index=pd.DatetimeIndex([], tz="Europe/Zurich"),
+        )
         if Path(out_df_filepath).is_file():
             current_df = pd.read_pickle(out_df_filepath)
 
