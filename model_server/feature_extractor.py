@@ -13,17 +13,17 @@ class FeatureExtractor:
 
     @staticmethod
     def _n_hours_ago_load(df: pd.DataFrame, n_hours: int) -> pd.Series:
-        """For each timestamps in the index, compute the load timedelta ago
+        """For each timestamps in the index, compute the load n_hours ago
 
         Assume that each row's index is the current timestamp.
         That is, when we say "timedelta ago from now", we mean "timedelta ago from this timestamp".
 
         Args:
             df (pd.DataFrame): Dataframe containing the `24h_later_load`, whose index refers to "now" when saying "24h later".
-            timedelta (pd.Timedelta): Time delta of interest, i.e. how long ago do we want the load ?
+            n_hours (int): How many hours ago is the load of interest ?
 
         Returns:
-            pd.Series: Series whose index is the same as `df`, and whose values are the loads `timedelta` time ago from their index.
+            pd.Series: Series whose index is the same as `df`, and whose values are the loads n_hours ago from their index.
         """
 
         assert "24h_later_load" in df.columns
