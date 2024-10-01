@@ -89,19 +89,20 @@ class DataLoader:
             current_df = pd.read_pickle(out_df_filepath)
 
         # Figure out the timestamp of the latest-available row with a non-NaN 'Actual Load'
-        latest_available_ts = DataLoader._get_latest_ts_with_actual_load(df=current_df)
+        latest_ts_with_actual_load = DataLoader._get_latest_ts_with_actual_load(
+            df=current_df
+        )
 
         # Fetch loads and forecasts
         fetched_df = self._query_load_and_forecast(
-            start_ts=latest_available_ts
+            start_ts=latest_ts_with_actual_load
             + pd.Timedelta(1, "m")  # right after (i.e. 1min) the latest ts
         )
 
-        # Append the newly-fetched data to the current data
+        # Concat the newly-fetched data to the current data
+        # Data after latest_ts_with_actual_load might have been updated
+        current_df = current_df[current_df.index <= latest_ts_with_actual_load]
         current_df = pd.concat([current_df, fetched_df], axis=0)
-
-        # TODO investigate why that is necessary
-        current_df = current_df.drop_duplicates()
 
         # Dump to output df
         Path(out_df_filepath).parent.mkdir(  # Ensure the folderpath exists
