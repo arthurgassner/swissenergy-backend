@@ -100,17 +100,25 @@ def test__query_load_and_forecast__24h_ago_ts():
     )
 
     # then
+
+    # data
     assert len(fetched_df.columns) == 2  # 2 columns
     assert (
         fetched_df.columns[0] == "Forecasted Load"
         and fetched_df.columns[1] == "Actual Load"
     )
-    assert (fetched_df.dtypes == "float64").all()  # correct dtype
-    assert isinstance(fetched_df.index, pd.DatetimeIndex)
-    assert fetched_df.index.dtype == "datetime64[ns, Europe/Zurich]"  # correct timezone
     assert (
         len(fetched_df) <= 48
     )  # data is hourly, so we should not have more than 48 datapoints
     assert (
         fetched_df["Actual Load"].isna().sum() >= 24
     )  # at least 24 of those datapoints should be NaN
+
+    # index
+    assert isinstance(fetched_df.index, pd.DatetimeIndex)
+    assert fetched_df.index.dtype == "datetime64[ns, Europe/Zurich]"  # correct timezone
+    assert fetched_df.index.is_monotonic_increasing
+    assert fetched_df.index.is_unique
+
+    # dtypes
+    assert (fetched_df.dtypes == "float64").all()  # correct dtype
