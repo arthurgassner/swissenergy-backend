@@ -166,6 +166,6 @@ async def get_latest_model_training_ts():
 
     creation_ts = os.path.getctime(model_filepath)  # since epoch
     logger.info(
-        f"Ready to send back the creation timestamp of {model_filepath.as_posix}: {creation_ts} ({datetime.fromtimestamp(creation_ts)})"
+        f"Ready to send back the creation timestamp of {model_filepath.as_posix()}: {creation_ts} ({datetime.fromtimestamp(creation_ts)})"
     )
     return {"latest_model_training_ts": creation_ts}
