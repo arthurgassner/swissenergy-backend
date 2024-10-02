@@ -1,6 +1,7 @@
 import logging
 import os
 from datetime import datetime, timedelta
+from pathlib import Path
 
 import pandas as pd
 from dotenv import load_dotenv
@@ -151,3 +152,20 @@ async def get_entsoe_loads(week_counter: WeekCounter):
     )
 
     return entsoe_loads
+
+
+@app.get("/latest-forecast-ts")
+async def get_latest_forecast_ts():
+
+    logger.info(f"Received GET /latest-forecast-ts")
+
+    model_filepath = Path("data/model.joblib")
+    if not model_filepath.is_file():
+        logger.warning("No model has been trained. Sending back -1")
+        return {"latest_forecast_ts": -1}
+
+    creation_ts = os.path.getctime(model_filepath)  # since epoch
+    logger.info(
+        f"Ready to send back the creation timestamp of {model_filepath.as_posix}: {creation_ts} ({datetime.fromtimestamp(creation_ts)})"
+    )
+    return {"latest_forecast_ts": creation_ts}
