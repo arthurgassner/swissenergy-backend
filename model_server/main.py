@@ -154,18 +154,18 @@ async def get_entsoe_loads(week_counter: WeekCounter):
     return entsoe_loads
 
 
-@app.get("/latest-forecast-ts")
-async def get_latest_forecast_ts():
+@app.get("/latest-model-training-ts")
+async def get_latest_model_training_ts():
 
-    logger.info(f"Received GET /latest-forecast-ts")
+    logger.info(f"Received GET /latest-model-training-ts")
 
     model_filepath = Path("data/model.joblib")
     if not model_filepath.is_file():
         logger.warning("No model has been trained. Sending back -1")
-        return {"latest_forecast_ts": -1}
+        return {"latest_model_training_ts": -1}
 
     creation_ts = os.path.getctime(model_filepath)  # since epoch
     logger.info(
         f"Ready to send back the creation timestamp of {model_filepath.as_posix}: {creation_ts} ({datetime.fromtimestamp(creation_ts)})"
     )
-    return {"latest_forecast_ts": creation_ts}
+    return {"latest_model_training_ts": creation_ts}
