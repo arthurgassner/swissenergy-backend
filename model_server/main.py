@@ -14,8 +14,9 @@ from .feature_extractor import FeatureExtractor
 from .model import Model
 
 
-class WeekCounter(BaseModel):
-    n_weeks_ago: int = 1
+class DeltaTime(BaseModel):
+    n_days: int = 0
+    n_hours: int = 1
 
 
 # Setup logging
@@ -125,21 +126,19 @@ async def get_latest_forecast():
 
 
 @app.post("/entsoe-loads")
-async def get_entsoe_loads(week_counter: WeekCounter):
+async def get_entsoe_loads(delta_time: DeltaTime):
 
-    logger.info(
-        f"Received POST /entsoe-loads - n_weeks_ago: {week_counter.n_weeks_ago}"
-    )
-
-    # Figure out till when the records should be sent, defaulting to a week ago
-    cutoff_dt = datetime.now() - timedelta(weeks=week_counter.n_weeks_ago)
-    cutoff_ts = pd.Timestamp(cutoff_dt, tz="Europe/Zurich")
+    logger.info(f"Received POST /entsoe-loads : {delta_time}")
 
     # Load past loads
     silver_df = pd.read_pickle("data/silver/df.pickle")
 
+    # Figure out till when the records should be sent
+    end_ts = silver_df.index.max()
+    cutoff_ts = end_ts - pd.Timedelta(days=delta_time.n_days, hours=delta_time.n_hours)
+
     # Only keep the data till
-    silver_df = silver_df[silver_df.index >= cutoff_ts]
+    silver_df = silver_df[silver_df.index > cutoff_ts]
 
     entsoe_loads = {
         "timestamps": silver_df.index.tolist(),
@@ -147,9 +146,14 @@ async def get_entsoe_loads(week_counter: WeekCounter):
         "24h_later_forecast": silver_df["24h_later_forecast"].fillna("NaN").tolist(),
     }
 
-    logger.info(
-        f"Ready to send back: {len(entsoe_loads['timestamps'])} timestamps [{min(entsoe_loads['timestamps'])} -> {max(entsoe_loads['timestamps'])}]"
-    )
+    if len(entsoe_loads["timestamps"]):
+        logger.info(
+            f"Ready to send back: {len(entsoe_loads['timestamps'])} timestamps between {cutoff_ts} -> {end_ts}"
+        )
+    else:
+        logger.warning(
+            f"Ready to send empty dict: {len(entsoe_loads['timestamps'])} timestamps between {cutoff_ts} -> {end_ts}"
+        )
 
     return entsoe_loads
 
