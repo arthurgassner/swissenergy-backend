@@ -1,11 +1,12 @@
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
 from dotenv import load_dotenv
 from fastapi import BackgroundTasks, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from .data_cleaner import DataCleaner
@@ -29,7 +30,20 @@ logging.basicConfig(
     ],
 )
 logger = logging.getLogger(__name__)
-app = FastAPI(title="Data preparation")
+app = FastAPI(title="[Swiss Energy Forcasting] ML Backend")
+
+
+# CORS configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[  # Allows requests from these origins
+        "http://localhost:8000",  # Dev Frontend URL
+        "http://127.0.0.1:8000",  # Dev Frontend URL
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allows all headers
+)
 
 
 def update_forecast(entsoe_api_key: str):
