@@ -14,6 +14,8 @@ from .data_loader import DataLoader
 from .feature_extractor import FeatureExtractor
 from .model import Model
 
+load_dotenv()
+
 
 class DeltaTime(BaseModel):
     n_days: int = 0
@@ -36,10 +38,7 @@ app = FastAPI(title="[Swiss Energy Forcasting] ML Backend")
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[  # Allows requests from these origins
-        "http://localhost:8000",  # Dev Frontend URL
-        "http://127.0.0.1:8000",  # Dev Frontend URL
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods (GET, POST, etc.)
     allow_headers=["*"],  # Allows all headers
@@ -112,8 +111,6 @@ def update_forecast(entsoe_api_key: str):
 @app.get("/update-forecast")
 async def get_update_forecast(background_tasks: BackgroundTasks):
     logger.info(f"Received GET /update-forecast")
-
-    load_dotenv()
     background_tasks.add_task(
         update_forecast, entsoe_api_key=os.getenv("ENTSOE_API_KEY")
     )
@@ -174,7 +171,6 @@ async def get_entsoe_loads(delta_time: DeltaTime):
 
 @app.get("/latest-model-training-ts")
 async def get_latest_model_training_ts():
-
     logger.info(f"Received GET /latest-model-training-ts")
 
     model_filepath = Path("data/model.joblib")
