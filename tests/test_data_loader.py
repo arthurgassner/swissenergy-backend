@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 
 import numpy as np
 import pandas as pd
-import pytest
 from dotenv import load_dotenv
 
 from model_server.data_loader import DataLoader

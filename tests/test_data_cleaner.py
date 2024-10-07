@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import pytest
 
 from model_server.data_cleaner import DataCleaner
 
