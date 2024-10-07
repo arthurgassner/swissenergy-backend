@@ -48,7 +48,7 @@ class DataLoader:
         return pd.Timestamp("20140101 00:00", tz="Europe/Zurich")
 
     def _query_load_and_forecast(
-        self, start_ts: pd.Timestamp, end_ts: Optional[pd.Timestamp]
+        self, start_ts: pd.Timestamp, end_ts: Optional[pd.Timestamp] = None
     ) -> pd.DataFrame:
         """Query the ENTSO-E API for the load and forecast data from `start_ts` to now+24h.
 
