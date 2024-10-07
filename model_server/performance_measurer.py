@@ -1,6 +1,7 @@
 from datetime import timedelta
 from typing import List
 
+import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_percentage_error
 
@@ -17,6 +18,8 @@ class PerformanceMeasurer:
     ) -> pd.Series:
         """Measure the Mean Absolute Percentage Error (MAPE) between the ground-truth and a prediction,
         for each period between the latest ts in data.index and spanning timedelta.
+        Any rows containing NaNs are not considered.
+        If no rows could be considered to compute a MAPE, np.nan is set as the MAPE.
 
         Args:
             y_true_col (str): Ground-truth's column name in `data`
@@ -38,19 +41,23 @@ class PerformanceMeasurer:
         assert y_true_col in data.columns
         assert y_pred_col in data.columns
 
+        data = data.dropna(subset=(y_true_col, y_pred_col))
         max_ts = data.index.max()
 
         starting_ts_to_mape = {}
         for timedelta in sorted(timedeltas):
             curr_starting_ts = max_ts - timedelta
             curr_data = data[data.index >= curr_starting_ts]
-            curr_mape = (
-                mean_absolute_percentage_error(
-                    y_true=curr_data[y_true_col],
-                    y_pred=curr_data[y_pred_col],
+
+            curr_mape = np.nan
+            if len(curr_data):
+                curr_mape = (
+                    mean_absolute_percentage_error(
+                        y_true=curr_data[y_true_col],
+                        y_pred=curr_data[y_pred_col],
+                    )
+                    * 100
                 )
-                * 100
-            )
             starting_ts_to_mape[curr_starting_ts] = curr_mape
 
         return pd.DataFrame(
