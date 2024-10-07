@@ -9,7 +9,7 @@ class PerformanceMeasurer:
     """Class responsible for measuring the performance of a time-series prediction model."""
 
     @staticmethod
-    def _mape(
+    def mape(
         y_true_col: str,
         y_pred_col: str,
         data: pd.DataFrame,
@@ -28,21 +28,22 @@ class PerformanceMeasurer:
         Returns:
             pd.Series: Series containing the MAPE values -- under 'mape' -- for each timedelta.
                        The index of row corresponds to the starting timestamp from which the MAPE was computed.
+                       The first row corresponds to the first timedelta passed.
         """
 
         # Check the input is as we expect
         assert isinstance(data.index, pd.DatetimeIndex)
-        assert data.index.is_monotonic_decreasing
+        assert data.index.is_monotonic_increasing
         assert data.index.is_unique
         assert y_true_col in data.columns
         assert y_pred_col in data.columns
 
+        max_ts = data.index.max()
+
         starting_ts_to_mape = {}
         for timedelta in sorted(timedeltas):
-            curr_starting_ts = data.index.max() - timedelta
-            curr_data = data[
-                data.index.to_series().apply(lambda x: x >= curr_starting_ts)
-            ]
+            curr_starting_ts = max_ts - timedelta
+            curr_data = data[data.index >= curr_starting_ts]
             curr_mape = (
                 mean_absolute_percentage_error(
                     y_true=curr_data[y_true_col],

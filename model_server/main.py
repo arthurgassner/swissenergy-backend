@@ -58,12 +58,21 @@ def update_forecast(entsoe_api_key: str):
 
     # Measure the performance of the official model
     logger.info("Start computing the official model's MAPE")
-    PerformanceMeasurer.mape(
+    mape_df = PerformanceMeasurer.mape(
         y_true_col="Actual Load",
         y_pred_col="Forecasted Load",
         data=pd.read_pickle("data/bronze/df.pickle"),
-        timedeltas=[timedelta(hours=1), timedelta(hours=24), timedelta(weeks=4)],
+        timedeltas=[
+            timedelta(hours=1),
+            timedelta(hours=24),
+            timedelta(weeks=1),
+            timedelta(weeks=4),
+        ],
     )
+    logger.info(f"1h MAPE: {mape_df.mape.iloc[0]}")
+    logger.info(f"24h MAPE: {mape_df.mape.iloc[1]}")
+    logger.info(f"7d MAPE: {mape_df.mape.iloc[2]}")
+    logger.info(f"4w MAPE: {mape_df.mape.iloc[3]}")
     logger.info("Official model's MAPE computed")
 
     # Clean the bronze-layer data
