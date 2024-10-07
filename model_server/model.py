@@ -11,9 +11,8 @@ from tqdm import tqdm
 class Model:
     def __init__(self, model_filepath: str, n_estimators: int) -> None:
         self._model_filepath = Path(model_filepath)
-        self._model_filepath.parent.mkdir(  # Ensure the folderpath exists
-            parents=True, exist_ok=True
-        )
+        # Ensure the folderpath exists
+        self._model_filepath.parent.mkdir(parents=True, exist_ok=True)
 
         # Create untrained-model and dump to disk
         model = lgb.LGBMRegressor(
@@ -53,9 +52,9 @@ class Model:
         # Prepare training data
         Xy = pd.read_pickle(Xy_filepath)
         assert "24h_later_load" in Xy.columns
-        Xy = Xy.dropna(
-            subset=("24h_later_load")
-        )  # Only train on data for which we have the target
+
+        # Only train on data for which we have the target
+        Xy = Xy.dropna(subset=("24h_later_load"))
 
         cutoff_timestamps = Xy[Xy.index >= Xy.index.max() - timedelta].index.to_list()
 
@@ -125,9 +124,8 @@ class Model:
         )
 
         # Dump to output df
-        Path(out_yhat_filepath).parent.mkdir(
-            parents=True, exist_ok=True
-        )  # Ensure the folderpath exists
+        # Ensure the folderpath exists
+        Path(out_yhat_filepath).parent.mkdir(parents=True, exist_ok=True)
         yhat.to_pickle(out_yhat_filepath)
 
         return yhat
