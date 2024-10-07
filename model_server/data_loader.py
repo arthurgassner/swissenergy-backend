@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
 from entsoe import EntsoePandasClient
@@ -46,11 +47,14 @@ class DataLoader:
 
         return pd.Timestamp("20140101 00:00", tz="Europe/Zurich")
 
-    def _query_load_and_forecast(self, start_ts: pd.Timestamp) -> pd.DataFrame:
+    def _query_load_and_forecast(
+        self, start_ts: pd.Timestamp, end_ts: Optional[pd.Timestamp]
+    ) -> pd.DataFrame:
         """Query the ENTSO-E API for the load and forecast data from `start_ts` to now+24h.
 
         Args:
             start_ts (pd.Timestamp): Starting ts (tz="Europe/Zurich") of the requested data
+            end_ts (Optional[pd.Timestamp]): Ending ts (tz="Europe/Zurich") of the requested data, default to 24h away from now.
 
         Returns:
             pd.DataFrame: Fetched data.
@@ -59,7 +63,10 @@ class DataLoader:
                           - index: datetime64[ns, Europe/Zurich]
                           Empty dataframe if no data could be found
         """
-        end_ts = pd.Timestamp(datetime.now() + timedelta(hours=24), tz="Europe/Zurich")
+        if end_ts is None:
+            end_ts = pd.Timestamp(
+                datetime.now() + timedelta(hours=24), tz="Europe/Zurich"
+            )
 
         try:
             fetched_df = self._entsoe_pandas_client.query_load_and_forecast(

@@ -120,3 +120,45 @@ def test__query_load_and_forecast__24h_ago_ts():
     # dtypes
     assert (fetched_df.dtypes == "float64").all()  # correct dtype
     assert fetched_df.index.dtype == "datetime64[ns, Europe/Zurich]"  # correct timezone
+
+
+def test__query_load_and_forecast__specitic_ts():
+    """Querying the ENTSO-E API with a timestamp whose load/forecast is known."""
+
+    # given
+    load_dotenv()
+    data_loader = DataLoader(entsoe_api_key=os.getenv("ENTSOE_API_KEY"))
+
+    # when
+    fetched_df = data_loader._query_load_and_forecast(
+        start_ts=pd.Timestamp("20241007 00:30", tz="Europe/Zurich"),
+        end_ts=pd.Timestamp("20241007 01:30", tz="Europe/Zurich"),
+    )
+
+    # then
+
+    # data
+    assert len(fetched_df.columns) == 2  # 2 columns
+    assert (
+        fetched_df.columns[0] == "Forecasted Load"
+        and fetched_df.columns[1] == "Actual Load"
+    )
+
+    # data is hourly, so we should have exactly one datapoint
+    assert len(fetched_df) == 1
+    # And no NaN, as that data should be known
+    assert fetched_df["Actual Load"].isna().sum() == 0
+    # And the data should match the historically-known data, as seen on the ENTSO-E website
+    # Forecasted Load [6.1.A] 01:00 - 02:00 06.10.2024
+    assert fetched_df["Forecasted Load"].iloc[0] == 6983
+    # Actual Load [6.1.A] 01:00 - 02:00 06.10.2024
+    assert fetched_df["Actual Load"].iloc[0] == 6937
+
+    # index
+    assert isinstance(fetched_df.index, pd.DatetimeIndex)
+    assert fetched_df.index.is_monotonic_increasing
+    assert fetched_df.index.is_unique
+
+    # dtypes
+    assert (fetched_df.dtypes == "float64").all()  # correct dtype
+    assert fetched_df.index.dtype == "datetime64[ns, Europe/Zurich]"  # correct timezone
