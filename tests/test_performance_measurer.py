@@ -5,6 +5,8 @@ from model_server.performance_measurer import PerformanceMeasurer
 
 
 def test_mape__perfect_prediction():
+    """Check that the MAPE of a perfect prediction is 0.0."""
+
     # Given a df of the expected format
     df = pd.DataFrame(
         {
