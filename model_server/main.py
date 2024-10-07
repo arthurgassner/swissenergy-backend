@@ -1,6 +1,6 @@
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -13,6 +13,7 @@ from .data_cleaner import DataCleaner
 from .data_loader import DataLoader
 from .feature_extractor import FeatureExtractor
 from .model import Model
+from .performance_measurer import PerformanceMeasurer
 
 load_dotenv()
 
@@ -54,6 +55,16 @@ def update_forecast(entsoe_api_key: str):
     data_loader.update_df(out_df_filepath="data/bronze/df.pickle")
 
     logger.info("Data downloaded.")
+
+    # Measure the performance of the official model
+    logger.info("Start computing the official model's MAPE")
+    PerformanceMeasurer.mape(
+        y_true_col="Actual Load",
+        y_pred_col="Forecasted Load",
+        data=pd.read_pickle("data/bronze/df.pickle"),
+        timedeltas=[timedelta(hours=1), timedelta(hours=24), timedelta(weeks=4)],
+    )
+    logger.info("Official model's MAPE computed")
 
     # Clean the bronze-layer data
     logger.info("Start cleaning the downloaded data...")
