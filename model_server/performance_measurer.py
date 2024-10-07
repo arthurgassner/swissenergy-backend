@@ -9,6 +9,19 @@ class PerformanceMeasurer:
     def mape(
         y_true_col: str, y_pred_col: str, data: pd.DataFrame, cutoff_ts: pd.Timestamp
     ) -> pd.Series:
+        """Measure the Mean Absolute Percentage Error (MAPE) between the ground-truth and a prediction,
+        for each timestamp landing after `cutoff_ts`
+
+        Args:
+            y_true_col (str): Ground-truth's column name in `data`
+            y_pred_col (str): Prediction's column name in `data`
+            data (pd.DataFrame): Dataframe containing the ground-truth and prediction, with a pd.DatetimeIndex
+            cutoff_ts (pd.Timestamp): Timestamp from which we should compute the MAPE.
+
+        Returns:
+            pd.Series: Series containing the MAPE values -- under 'mape' -- for each timestamp.
+                       The index of row corresponds to the starting timestamp from which the MAPE was computed.
+        """
 
         # Check the input is as we expect
         assert isinstance(data.index, pd.DatetimeIndex)
