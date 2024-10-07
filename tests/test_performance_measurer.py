@@ -25,13 +25,14 @@ def test__mape__perfect_prediction():
     )
 
     # when
+    timedeltas = [timedelta(days=3 + i) for i in range(5)]
     mape_df = PerformanceMeasurer._mape(
         "Actual Load",
         "Forecasted Load",
         data=df,
-        timedeltas=[timedelta(days=3 + i) for i in range(5)],
+        timedeltas=timedeltas,
     )
 
     # then
-    assert len(mape_df) == 5  # 5 timedeltas where given
+    assert len(mape_df) == len(timedeltas)  # 5 timedeltas where given
     assert (mape_df["mape"] == 0.0).all()  # The predictions are always without error
