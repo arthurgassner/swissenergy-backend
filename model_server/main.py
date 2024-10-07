@@ -79,7 +79,7 @@ def update_forecast(entsoe_api_key: str):
     logger.info("Start cleaning the downloaded data...")
 
     DataCleaner.clean(
-        in_df_filepath="data/bronze/df.pickle",
+        df=pd.read_pickle("data/bronze/df.pickle"),
         out_df_filepath="data/silver/df.pickle",
     )
 
@@ -88,7 +88,7 @@ def update_forecast(entsoe_api_key: str):
     # Extract features
     logger.info("Start extracting features...")
     FeatureExtractor.extract_features(
-        in_df_filepath="data/silver/df.pickle",
+        df=pd.read_pickle("data/silver/df.pickle"),
         out_df_filepath="data/gold/df.pickle",
     )
     logger.info("Features extracted.")

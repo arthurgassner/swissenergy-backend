@@ -55,15 +55,13 @@ class DataCleaner:
         return df.resample(rule=pd.Timedelta(1, "h")).min()
 
     @staticmethod
-    def clean(in_df_filepath: str, out_df_filepath: str) -> None:
-        """Clean the dataframe (.pickle) and dump the cleaned version to disk.
+    def clean(df: pd.DataFrame, out_df_filepath: str) -> None:
+        """Clean the dataframe df and dump the cleaned version to disk.
 
         Args:
-            in_df_filepath (str): Filesystem location of the dirty dataframe (.pickle)
+            df (pd.DataFrame): Dirty dataframe
             out_df_filepath (str): Filesystem location where the cleaned dataframe will be dumped.
         """
-        # Load dataframe to be cleaned
-        df = pd.read_pickle(in_df_filepath)
 
         # Currently, the timestamp correponds to "in the next hour, this is the load"
         # whereas we want it to mean "the load 24h from this timestamp is"

@@ -54,16 +54,13 @@ class FeatureExtractor:
         return last_hour_loads.rolling(window=n_hours, min_periods=1).apply(stat)
 
     @staticmethod
-    def extract_features(in_df_filepath: str, out_df_filepath: str) -> None:
+    def extract_features(df: pd.DataFrame, out_df_filepath: str) -> None:
         """Extract the features.
 
         Args:
-            in_df_filepath (str): Filepath of the dataframe whose features must be extracted (.pickle)
+            df (pd.DataFrame): Dataframe whose features must be extracted (.pickle)
             out_df_filepath (str): Filepath where to dump the extracted features (.pickle)
         """
-
-        # Load data
-        df = pd.read_pickle(in_df_filepath)[["24h_later_load"]]
 
         # Enrich the df with the datetime attributes
         df["year"] = df.index.year
