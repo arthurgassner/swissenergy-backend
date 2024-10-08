@@ -95,7 +95,7 @@ def update_forecast(entsoe_api_key: str):
 
     # Backtest model
     logger.info("Start back-testing the model...")
-    model = Model(n_estimators=100)
+    model = Model(n_estimators=10_000)
     latest_load_ts = (
         pd.read_pickle("data/gold/df.pickle")
         .dropna(subset=("24h_later_load"))
@@ -195,17 +195,17 @@ async def get_entsoe_loads(delta_time: DeltaTime):
     return entsoe_loads
 
 
-@app.get("/latest-model-training-ts")  # TODO rename latest-forecast-ts
-async def get_latest_model_training_ts():
-    logger.info(f"Received GET /latest-model-training-ts")
+@app.get("/latest-forecast-ts")
+async def get_latest_forecast_ts():
+    logger.info(f"Received GET /latest-forecast-ts")
 
-    model_filepath = Path("data/model.joblib")
-    if not model_filepath.is_file():
-        logger.warning("No model has been trained. Sending back -1")
-        return {"latest_model_training_ts": -1}
+    yhat_filepath = Path("data/yhat.pickle")
+    if not yhat_filepath.is_file():
+        logger.warning("No forecast has been created. Sending back -1")
+        return {"latest_forecast_ts": -1}
 
-    creation_ts = os.path.getctime(model_filepath)  # since epoch
+    creation_ts = os.path.getctime(yhat_filepath)  # since epoch
     logger.info(
-        f"Ready to send back the creation timestamp of {model_filepath.as_posix()}: {creation_ts} ({datetime.fromtimestamp(creation_ts)})"
+        f"Ready to send back the creation timestamp of {yhat_filepath.as_posix()}: {creation_ts} ({datetime.fromtimestamp(creation_ts)})"
     )
-    return {"latest_model_training_ts": creation_ts}
+    return {"latest_forecast_ts": creation_ts}
