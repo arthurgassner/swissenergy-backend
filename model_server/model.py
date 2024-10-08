@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Tuple
+from typing import List, Tuple
 
 import joblib
 import lightgbm as lgb
@@ -9,24 +9,54 @@ from tqdm import tqdm
 
 
 class Model:
-    def __init__(self, model_filepath: str, n_estimators: int) -> None:
-        self._model_filepath = Path(model_filepath)
-        # Ensure the folderpath exists
-        self._model_filepath.parent.mkdir(parents=True, exist_ok=True)
-
+    def __init__(self, n_estimators: int) -> None:
         # Create untrained-model and dump to disk
-        model = lgb.LGBMRegressor(
+        self._model = lgb.LGBMRegressor(
             n_estimators=n_estimators, force_row_wise=True, verbose=0
         )
-        joblib.dump(model, self._model_filepath)
+
+    def _train_predict(self, Xy: pd.DataFrame, query_ts: pd.Timestamp) -> pd.Series:
+        """Train a model on all the features whose index is BEFORE query_ts,
+        and run an inference on the features EXACTLY AT query_ts.
+
+        Args:
+            Xy (pd.DataFrame): Dataframe containing the (features, target), where the target is '24h_later_load'
+            query_ts (pd.Timestamp): Timestamp whose inference we are interested in
+
+        Raises:
+            ValueError: If the query_ts is missing from Xy's index,
+                        i.e. the features for the timestamp of interest are missing.
+
+        Returns:
+            pd.Series: Predicted value for '24h_later_load'
+        """
+
+        assert isinstance(Xy.index, pd.DatetimeIndex)
+        assert Xy.index.is_unique
+        assert Xy.index.is_monotonic_decreasing
+
+        # Extract the serving Xy
+        if not query_ts in Xy.index:
+            raise ValueError(f"Query timestamp {query_ts} is missing from Xy's index.")
+        X_serving = Xy.loc[query_ts].drop(columns=["24h_later_load"])
+
+        # Prepare training data
+        Xy = Xy.dropna(subset=("24h_later_load"))
+        Xy = Xy[Xy.index < query_ts]  # Only train on data strictly before the ts
+        X, y = Xy.drop(columns=["24h_later_load"]), Xy["24h_later_load"]
+
+        # Train the model
+        self._model.fit(X, y)
+
+        # Predict
+        return self._model.predict(X_serving)
 
     def train(self, Xy_filepath: str) -> None:
         # Prepare training data
         Xy = pd.read_pickle(Xy_filepath)
         assert "24h_later_load" in Xy.columns
-        Xy = Xy.dropna(  # Only train on data for which we have the target
-            subset=("24h_later_load")
-        )
+        # Only train on data for which we have the target
+        Xy = Xy.dropna(subset=("24h_later_load"))
         X, y = Xy.drop(columns=["24h_later_load"]), Xy["24h_later_load"]
 
         # Train model
