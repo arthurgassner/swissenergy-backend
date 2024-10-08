@@ -12,10 +12,10 @@ class Model:
     def __init__(self, n_estimators: int) -> None:
         # Create untrained-model and dump to disk
         self._model = lgb.LGBMRegressor(
-            n_estimators=n_estimators, force_row_wise=True, verbose=0
+            n_estimators=n_estimators, force_row_wise=True, verbose=-1
         )
 
-    def _train_predict(self, Xy: pd.DataFrame, query_ts: pd.Timestamp) -> pd.Series:
+    def _train_predict(self, Xy: pd.DataFrame, query_ts: pd.Timestamp) -> float:
         """Train a model on all the features whose index is BEFORE query_ts,
         and run an inference on the features EXACTLY AT query_ts.
 
@@ -33,12 +33,12 @@ class Model:
 
         assert isinstance(Xy.index, pd.DatetimeIndex)
         assert Xy.index.is_unique
-        assert Xy.index.is_monotonic_decreasing
+        assert Xy.index.is_monotonic_increasing
 
         # Extract the serving Xy
         if not query_ts in Xy.index:
             raise ValueError(f"Query timestamp {query_ts} is missing from Xy's index.")
-        X_serving = Xy.loc[query_ts].drop(columns=["24h_later_load"])
+        X_serving = Xy.loc[[query_ts]].drop(columns=["24h_later_load"])
 
         # Prepare training data
         Xy = Xy.dropna(subset=("24h_later_load"))
@@ -49,7 +49,7 @@ class Model:
         self._model.fit(X, y)
 
         # Predict
-        return self._model.predict(X_serving)
+        return float(self._model.predict(X_serving)[0])
 
     def train(self, Xy_filepath: str) -> None:
         # Prepare training data
