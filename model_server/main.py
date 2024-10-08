@@ -96,25 +96,40 @@ def update_forecast(entsoe_api_key: str):
     # Backtest model
     logger.info("Start back-testing the model...")
     model = Model(n_estimators=100)
-    # TODO
-    logger.info(f"MAPE over the last 24h: {-1}")
-    # TODO
-    logger.info(f"Approximated MAPE over the last 7d: {-1}")
-    logger.info("Back-testing done.")
-
-    # Train-predict
-    logger.info("Start train-predicting the model...")
-    start_ts = (
+    latest_load_ts = (
         pd.read_pickle("data/gold/df.pickle")
         .dropna(subset=("24h_later_load"))
         .index.max()
     )
+    yhat_backtest = model.train_predict(
+        Xy=pd.read_pickle("data/gold/df.pickle"),
+        query_timestamps=[
+            pd.Timestamp(latest_load_ts) - timedelta(hours=23) + timedelta(hours=i)
+            for i in range(24)
+        ],
+    )
+    y_backtest = pd.read_pickle("data/gold/df.pickle")[["24h_later_load"]]
+    mape_df = PerformanceMeasurer.mape(
+        y_true_col="24h_later_load",
+        y_pred_col="predicted_24h_later_load",
+        data=yhat_backtest.join(y_backtest, how="left"),
+        timedeltas=[
+            timedelta(hours=1),
+            timedelta(hours=24),
+        ],
+    )
+    logger.info(f"MAPE over the last 1h: {mape_df.mape.iloc[0]:.2f}")
+    logger.info(f"MAPE over the last 24h: {mape_df.mape.iloc[1]:.2f}")
+    logger.info("Back-testing done.")
+
+    # Train-predict
+    logger.info("Start train-predicting the model...")
     model.train_predict(
         Xy=pd.read_pickle("data/gold/df.pickle"),
         query_timestamps=[
-            pd.Timestamp(start_ts) + timedelta(hours=i) for i in range(1, 25)
+            pd.Timestamp(latest_load_ts) + timedelta(hours=i) for i in range(1, 25)
         ],
-        out_yhat_filepath=Path("data/yhat.pickle"),
+        out_yhat_filepath="data/yhat.pickle",
     )
     logger.info("Train-predict done.")
 
