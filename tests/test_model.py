@@ -30,7 +30,7 @@ def test__train_predict__expected_prediction():
         {
             "feature1": [1, 2, 3, 1],
             "feature2": [1, 2, 3, 1],
-            "feature2": [1, 2, 3, 1],
+            "feature3": [1, 2, 3, 1],
             "24h_later_load": [1, 2, 3, np.nan],
         },
         index=pd.DatetimeIndex(
@@ -49,3 +49,38 @@ def test__train_predict__expected_prediction():
 
     # then
     assert yhat == 2.0  # as the model overfit the training set
+
+
+def test_train_predict__expected_prediction():
+    """Check whether a model's predictions are of the expected shape."""
+
+    # given
+    model = Model(n_estimators=10)
+    Xy = pd.DataFrame(
+        {
+            "feature1": [1, 2, 3, 4, 1, 2],
+            "feature2": [1, 2, 3, 4, 1, 2],
+            "feature3": [1, 2, 3, 4, 1, 2],
+            "24h_later_load": [1, 2, 3, 4, np.nan, np.nan],
+        },
+        index=pd.DatetimeIndex(
+            [
+                pd.Timestamp("2024-01-01 01:00", tz="Europe/Zurich"),
+                pd.Timestamp("2024-01-01 02:00", tz="Europe/Zurich"),
+                pd.Timestamp("2024-01-01 03:00", tz="Europe/Zurich"),
+                pd.Timestamp("2024-01-01 04:00", tz="Europe/Zurich"),
+                pd.Timestamp("2024-01-01 05:00", tz="Europe/Zurich"),
+                pd.Timestamp("2024-01-01 06:00", tz="Europe/Zurich"),
+            ]
+        ),
+    )
+    query_timestamps = [
+        pd.Timestamp("2024-01-01 04:00", tz="Europe/Zurich"),
+        pd.Timestamp("2024-01-01 05:00", tz="Europe/Zurich"),
+        pd.Timestamp("2024-01-01 06:00", tz="Europe/Zurich"),
+    ]
+    # when
+    yhat = model.train_predict(Xy, query_timestamps)
+
+    # then
+    assert len(yhat) == len(query_timestamps)

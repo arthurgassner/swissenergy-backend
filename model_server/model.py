@@ -3,6 +3,7 @@ from typing import List, Tuple
 
 import joblib
 import lightgbm as lgb
+import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_percentage_error
 from tqdm import tqdm
@@ -28,7 +29,7 @@ class Model:
                         i.e. the features for the timestamp of interest are missing.
 
         Returns:
-            pd.Series: Predicted value for '24h_later_load'
+            float: Predicted value for '24h_later_load'
         """
 
         assert isinstance(Xy.index, pd.DatetimeIndex)
@@ -50,6 +51,27 @@ class Model:
 
         # Predict
         return float(self._model.predict(X_serving)[0])
+
+    def train_predict(
+        self, Xy: pd.DataFrame, query_timestamps: List[pd.Timestamp]
+    ) -> List[float]:
+        """Train one model per query_ts in `query_timestamps`.
+        Each model will only be training on the features in Xy available strictly BEFORE said query_ts.
+        The features EXACTLY AT the query_ts will be used to predict the `24h_later_load`.
+
+        Args:
+            Xy (pd.DataFrame): Dataframe containing the (features, target), where the target is '24h_later_load'
+            query_timestamps (List[pd.Timestamp]): Timestamps whose inference we are interested in
+
+        Returns:
+            List[float]: Predicted values for '24h_later_load', in order of appearence in query_timestamps
+        """
+
+        predicted_values = []
+        for query_ts in query_timestamps:
+            predicted_values.append(self._train_predict(Xy, query_ts))
+
+        return predicted_values
 
     def train(self, Xy_filepath: str) -> None:
         # Prepare training data
