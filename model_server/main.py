@@ -112,7 +112,7 @@ def update_forecast(entsoe_api_key: str):
     model.train_predict(
         Xy=pd.read_pickle("data/gold/df.pickle"),
         query_timestamps=[
-            pd.Timestamp(start_ts) + timedelta(hours=i) for i in range(24)
+            pd.Timestamp(start_ts) + timedelta(hours=i) for i in range(1, 25)
         ],
         out_yhat_filepath=Path("data/yhat.pickle"),
     )
