@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import joblib
 import lightgbm as lgb
@@ -53,8 +53,11 @@ class Model:
         return float(self._model.predict(X_serving)[0])
 
     def train_predict(
-        self, Xy: pd.DataFrame, query_timestamps: List[pd.Timestamp]
-    ) -> List[float]:
+        self,
+        Xy: pd.DataFrame,
+        query_timestamps: List[pd.Timestamp],
+        out_yhat_filepath: Optional[Path] = None,
+    ) -> pd.Series:
         """Train one model per query_ts in `query_timestamps`.
         Each model will only be training on the features in Xy available strictly BEFORE said query_ts.
         The features EXACTLY AT the query_ts will be used to predict the `24h_later_load`.
@@ -62,16 +65,27 @@ class Model:
         Args:
             Xy (pd.DataFrame): Dataframe containing the (features, target), where the target is '24h_later_load'
             query_timestamps (List[pd.Timestamp]): Timestamps whose inference we are interested in
+            out_yhat_filepath (Path, optional): Where to save the predictions.
 
         Returns:
-            List[float]: Predicted values for '24h_later_load', in order of appearence in query_timestamps
+            pd.Series: Dataframe with the predicted values under the column 'predicted_24h_later_load'.
+                       The index corresponds to the query_timestamps.
         """
 
         predicted_values = []
         for query_ts in query_timestamps:
             predicted_values.append(self._train_predict(Xy, query_ts))
 
-        return predicted_values
+        yhat = pd.DataFrame(
+            {"predicted_24h_later_load": predicted_values},
+            index=pd.DatetimeIndex(query_timestamps),
+        )
+
+        if out_yhat_filepath:
+            out_yhat_filepath.parent.mkdir(parents=True, exist_ok=True)
+            yhat.to_pickle(out_yhat_filepath)
+
+        return yhat
 
     def train(self, Xy_filepath: str) -> None:
         # Prepare training data
