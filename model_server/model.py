@@ -56,7 +56,7 @@ class Model:
         self,
         Xy: pd.DataFrame,
         query_timestamps: List[pd.Timestamp],
-        out_yhat_filepath: Optional[Path] = None,
+        out_yhat_filepath: Optional[str] = None,
     ) -> pd.Series:
         """Train one model per query_ts in `query_timestamps`.
         Each model will only be training on the features in Xy available strictly BEFORE said query_ts.
@@ -65,7 +65,7 @@ class Model:
         Args:
             Xy (pd.DataFrame): Dataframe containing the (features, target), where the target is '24h_later_load'
             query_timestamps (List[pd.Timestamp]): Timestamps whose inference we are interested in
-            out_yhat_filepath (Path, optional): Where to save the predictions.
+            out_yhat_filepath (str, optional): Where to save the predictions.
 
         Returns:
             pd.Series: Dataframe with the predicted values under the column 'predicted_24h_later_load'.
@@ -82,7 +82,7 @@ class Model:
         )
 
         if out_yhat_filepath:
-            out_yhat_filepath.parent.mkdir(parents=True, exist_ok=True)
+            Path(out_yhat_filepath).parent.mkdir(parents=True, exist_ok=True)
             yhat.to_pickle(out_yhat_filepath)
 
         return yhat

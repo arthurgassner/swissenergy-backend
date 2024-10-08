@@ -54,7 +54,7 @@ def update_forecast(entsoe_api_key: str):
     data_loader = DataLoader(entsoe_api_key=entsoe_api_key)
     data_loader.update_df(out_df_filepath="data/bronze/df.pickle")
 
-    logger.info("Data downloaded.")
+    logger.info("Data downloaded")
 
     # Measure the performance of the official model
     logger.info("Start computing the official model's MAPE")
@@ -93,39 +93,30 @@ def update_forecast(entsoe_api_key: str):
     )
     logger.info("Features extracted.")
 
-    # Train
-    logger.info("Start training model...")
-
-    model = Model(model_filepath="data/model.joblib", n_estimators=1_000)
-    model.train(Xy_filepath="data/gold/df.pickle")
-
-    logger.info("Training done.")
-
     # Backtest model
     logger.info("Start back-testing the model...")
-    _, mape_24h = model.backtest(
-        Xy_filepath="data/gold/df.pickle",
-        timedelta=pd.Timedelta(24, "h"),
-        use_every_nth_ts=1,
-    )
-    logger.info(f"MAPE over the last 24h: {mape_24h}")
-
-    _, approximated_mape_7d = model.backtest(
-        Xy_filepath="data/gold/df.pickle",
-        timedelta=pd.Timedelta(7, "d"),
-        use_every_nth_ts=20,
-    )
-    logger.info(f"Approximated MAPE over the last 7d: {approximated_mape_7d}")
+    model = Model(n_estimators=100)
+    # TODO
+    logger.info(f"MAPE over the last 24h: {-1}")
+    # TODO
+    logger.info(f"Approximated MAPE over the last 7d: {-1}")
     logger.info("Back-testing done.")
 
-    # Predict
-    logger.info("Start forecasting the load for the next 24h...")
-    model.train(Xy_filepath="data/gold/df.pickle")
-    model.predict(
-        in_df_filepath="data/gold/df.pickle",
-        out_yhat_filepath="data/yhat.pickle",
+    # Train-predict
+    logger.info("Start train-predicting the model...")
+    start_ts = (
+        pd.read_pickle("data/gold/df.pickle")
+        .dropna(subset=("24h_later_load"))
+        .index.max()
     )
-    logger.info("Forecasting done.")
+    model.train_predict(
+        Xy=pd.read_pickle("data/gold/df.pickle"),
+        query_timestamps=[
+            pd.Timestamp(start_ts) + timedelta(hours=i) for i in range(24)
+        ],
+        out_yhat_filepath=Path("data/yhat.pickle"),
+    )
+    logger.info("Train-predict done.")
 
 
 @app.get("/update-forecast")
@@ -189,7 +180,7 @@ async def get_entsoe_loads(delta_time: DeltaTime):
     return entsoe_loads
 
 
-@app.get("/latest-model-training-ts")
+@app.get("/latest-model-training-ts")  # TODO rename latest-forecast-ts
 async def get_latest_model_training_ts():
     logger.info(f"Received GET /latest-model-training-ts")
 
