@@ -73,7 +73,7 @@ class Model:
         """
 
         predicted_values = []
-        for query_ts in query_timestamps:
+        for query_ts in tqdm(query_timestamps):
             predicted_values.append(self._train_predict(Xy, query_ts))
 
         yhat = pd.DataFrame(
@@ -165,33 +165,3 @@ class Model:
         )
 
         return results_df, mape
-
-    def predict(self, in_df_filepath: str, out_yhat_filepath: str) -> pd.Series:
-        # Only load the model if it exists
-        if not self._model_filepath.is_file():
-            raise Exception(f"Missing model file at {self._model_filepath}")
-        model = joblib.load(self._model_filepath)  # Load model
-
-        # Load data
-        df = pd.read_pickle(in_df_filepath)
-
-        # Figure out the timestamps of the next 24h for which we have features
-        starting_ts = df.index.max() - pd.Timedelta(1, "d")
-        timestamps = list(df.index[df.index > starting_ts])
-
-        # Run predictions
-        yhat = pd.DataFrame(
-            {
-                "predicted_24h_later_load": model.predict(
-                    df.loc[timestamps].drop(columns=["24h_later_load"])
-                )
-            },
-            index=timestamps,
-        )
-
-        # Dump to output df
-        # Ensure the folderpath exists
-        Path(out_yhat_filepath).parent.mkdir(parents=True, exist_ok=True)
-        yhat.to_pickle(out_yhat_filepath)
-
-        return yhat
