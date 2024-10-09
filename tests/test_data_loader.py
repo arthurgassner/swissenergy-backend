@@ -130,8 +130,8 @@ def test__query_load_and_forecast__specitic_ts():
 
     # when
     fetched_df = data_loader._query_load_and_forecast(
-        start_ts=pd.Timestamp("20241007 00:30", tz="Europe/Zurich"),
-        end_ts=pd.Timestamp("20241007 01:30", tz="Europe/Zurich"),
+        start_ts=pd.Timestamp("20240701 00:30", tz="Europe/Zurich"),
+        end_ts=pd.Timestamp("20240701 01:30", tz="Europe/Zurich"),
     )
 
     # then
@@ -149,9 +149,11 @@ def test__query_load_and_forecast__specitic_ts():
     assert fetched_df["Actual Load"].isna().sum() == 0
     # And the data should match the historically-known data, as seen on the ENTSO-E website
     # Forecasted Load [6.1.A] 01:00 - 02:00 07.10.2024
-    assert fetched_df["Forecasted Load"].iloc[0] == 6983
-    # Actual Load [6.1.A] 01:00 - 02:00 07.10.2024 --> cannot test actual load, as it can be updated
-    # assert fetched_df["Actual Load"].iloc[0] == 6937
+    assert fetched_df["Forecasted Load"].iloc[0] == 5693
+    # Actual Load [6.1.A] 01:00 - 02:00 07.10.2024
+    assert (
+        fetched_df["Actual Load"].iloc[0] == 4994
+    )  # Note that this can be updated by ENTSO-E
 
     # index
     assert isinstance(fetched_df.index, pd.DatetimeIndex)
