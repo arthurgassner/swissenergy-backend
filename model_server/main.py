@@ -100,7 +100,7 @@ def update_forecast(entsoe_api_key: str):
 
     # Backtest model
     logger.info("Start back-testing the model...")
-    model = Model(n_estimators=os.getenv("MODEL_N_ESTIMATORS"))
+    model = Model(n_estimators=int(os.getenv("MODEL_N_ESTIMATORS")))
     latest_load_ts = (
         pd.read_pickle("data/gold/df.pickle")
         .dropna(subset=("24h_later_load"))
