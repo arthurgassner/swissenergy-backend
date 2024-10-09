@@ -150,10 +150,8 @@ def test__query_load_and_forecast__specitic_ts():
     # And the data should match the historically-known data, as seen on the ENTSO-E website
     # Forecasted Load [6.1.A] 01:00 - 02:00 07.10.2024
     assert fetched_df["Forecasted Load"].iloc[0] == 5693
-    # Actual Load [6.1.A] 01:00 - 02:00 07.10.2024
-    assert (
-        fetched_df["Actual Load"].iloc[0] == 4994
-    )  # Note that this can be updated by ENTSO-E
+    # Actual Load [6.1.A] 01:00 - 02:00 07.10.2024 --> Note that this can be updated by ENTSO-E
+    assert fetched_df["Actual Load"].iloc[0] == 4994
 
     # index
     assert isinstance(fetched_df.index, pd.DatetimeIndex)
