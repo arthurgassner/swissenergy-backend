@@ -69,10 +69,13 @@ def update_forecast(entsoe_api_key: str):
             timedelta(weeks=4),
         ],
     )
-    logger.info(f"1h MAPE: {mape_df.mape.iloc[0]:.2f}")
-    logger.info(f"24h MAPE: {mape_df.mape.iloc[1]:.2f}")
-    logger.info(f"7d MAPE: {mape_df.mape.iloc[2]:.2f}")
-    logger.info(f"4w MAPE: {mape_df.mape.iloc[3]:.2f}")
+    mape = {
+        "1h": mape_df.mape.iloc[0],
+        "24h": mape_df.mape.iloc[1],
+        "7d": mape_df.mape.iloc[2],
+        "4w": mape_df.mape.iloc[3],
+    }
+    logger.info(f"ENTSO-E MAPE: {mape}")
     logger.info("Official model's MAPE computed")
 
     # Clean the bronze-layer data
@@ -224,6 +227,7 @@ async def get_latest_mape():
             "1h": -1,
             "24h": -1,
             "7d": -1,
+            "4w": -1,
         },
         "custom-model": {
             "1h": -1,
