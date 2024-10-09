@@ -76,7 +76,7 @@ def update_forecast(entsoe_api_key: str):
         "7d": mape_df.mape.iloc[2],
         "4w": mape_df.mape.iloc[3],
     }
-    joblib.dump(mape, "entsoe_mape.joblib")
+    joblib.dump(mape, "data/entsoe_mape.joblib")
     logger.info(f"ENTSO-E MAPE: {mape}")
     logger.info("Official model's MAPE computed")
 
@@ -127,7 +127,7 @@ def update_forecast(entsoe_api_key: str):
         "1h": mape_df.mape.iloc[0],
         "24h": mape_df.mape.iloc[1],
     }
-    joblib.dump(mape, "our_model_mape.joblib")
+    joblib.dump(mape, "data/our_model_mape.joblib")
     logger.info(f"MAPE: {mape}")
     logger.info("Back-testing done.")
 
@@ -225,13 +225,13 @@ async def get_latest_mape():
     logger.info(f"Received GET /latest-mape")
 
     # Figure out the ENTSO-E MAPE
-    entsoe_filepath = Path("entsoe_mape.joblib")
+    entsoe_filepath = Path("data/entsoe_mape.joblib")
     entsoe_mape = {}
     if entsoe_filepath.is_file():
         entsoe_mape = joblib.load(entsoe_filepath)
 
     # Figure out our model's MAPE
-    our_model_filepath = Path("our_model_mape.joblib")
+    our_model_filepath = Path("data/our_model_mape.joblib")
     our_model_mape = {}
     if our_model_filepath.is_file():
         our_model_mape = joblib.load(our_model_filepath)
