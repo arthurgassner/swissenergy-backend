@@ -1,3 +1,4 @@
+*.joblib
 data
 .ipynb_checkpoints
 .virtual_documents

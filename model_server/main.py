@@ -3,6 +3,7 @@ import os
 from datetime import datetime, timedelta
 from pathlib import Path
 
+import joblib
 import pandas as pd
 from dotenv import load_dotenv
 from fastapi import BackgroundTasks, FastAPI
@@ -75,6 +76,7 @@ def update_forecast(entsoe_api_key: str):
         "7d": mape_df.mape.iloc[2],
         "4w": mape_df.mape.iloc[3],
     }
+    joblib.dump(mape, "entsoe_mape.joblib")
     logger.info(f"ENTSO-E MAPE: {mape}")
     logger.info("Official model's MAPE computed")
 
@@ -121,8 +123,12 @@ def update_forecast(entsoe_api_key: str):
             timedelta(hours=24),
         ],
     )
-    logger.info(f"MAPE over the last 1h: {mape_df.mape.iloc[0]:.2f}")
-    logger.info(f"MAPE over the last 24h: {mape_df.mape.iloc[1]:.2f}")
+    mape = {
+        "1h": mape_df.mape.iloc[0],
+        "24h": mape_df.mape.iloc[1],
+    }
+    joblib.dump(mape, "our_model_mape.joblib")
+    logger.info(f"MAPE: {mape}")
     logger.info("Back-testing done.")
 
     # Train-predict
@@ -218,19 +224,22 @@ async def get_latest_forecast_ts():
 async def get_latest_mape():
     logger.info(f"Received GET /latest-mape")
 
-    # TODO
+    # Figure out the ENTSO-E MAPE
+    entsoe_filepath = Path("entsoe_mape.joblib")
+    entsoe_mape = {}
+    if entsoe_filepath.is_file():
+        entsoe_mape = joblib.load(entsoe_filepath)
 
-    logger.info(f"Ready to send back the TODO")
-    return {
-        "latest_load_ts": -1,
-        "entsoe-model": {
-            "1h": -1,
-            "24h": -1,
-            "7d": -1,
-            "4w": -1,
-        },
-        "custom-model": {
-            "1h": -1,
-            "24h": -1,
-        },
+    # Figure out our model's MAPE
+    our_model_filepath = Path("our_model_mape.joblib")
+    our_model_mape = {}
+    if our_model_filepath.is_file():
+        our_model_mape = joblib.load(our_model_filepath)
+
+    mape = {
+        "entsoe_model": entsoe_mape,
+        "our_model": our_model_mape,
     }
+
+    logger.info(f"Ready to send back the MAPE: {mape}")
+    return mape
