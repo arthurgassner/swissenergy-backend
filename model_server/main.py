@@ -209,3 +209,24 @@ async def get_latest_forecast_ts():
         f"Ready to send back the creation timestamp of {yhat_filepath.as_posix()}: {creation_ts} ({datetime.fromtimestamp(creation_ts)})"
     )
     return {"latest_forecast_ts": creation_ts}
+
+
+@app.get("/latest-mape")
+async def get_latest_mape():
+    logger.info(f"Received GET /latest-mape")
+
+    # TODO
+
+    logger.info(f"Ready to send back the TODO")
+    return {
+        "latest_load_ts": -1,
+        "entsoe-model": {
+            "1h": -1,
+            "24h": -1,
+            "7d": -1,
+        },
+        "custom-model": {
+            "1h": -1,
+            "24h": -1,
+        },
+    }
