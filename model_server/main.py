@@ -112,6 +112,8 @@ def update_forecast(entsoe_api_key: str):
             pd.Timestamp(latest_load_ts) - timedelta(hours=23) + timedelta(hours=i)
             for i in range(24)
         ],
+        out_yhat_filepath="data/yhat_backtest.pickle",
+        already_computed_yhat_filepath="data/yhat_backtest.pickle",
     )
     y_backtest = pd.read_pickle("data/gold/df.pickle")[["24h_later_load"]]
     mape_df = PerformanceMeasurer.mape(
