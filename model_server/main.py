@@ -16,6 +16,14 @@ from .feature_extractor import FeatureExtractor
 from .model import Model
 from .performance_measurer import PerformanceMeasurer
 
+BRONZE_DF_FILEPATH = "data/bronze/df.pickle"
+SILVER_DF_FILEPATH = "data/silver/df.pickle"
+GOLD_DF_FILEPATH = "data/gold/df.pickle"
+YHAT_BACKTEST_FILEPATH = "data/yhat_backtest.pickle"
+YHAT_FILEPATH = "data/yhat.pickle"
+OUR_MODEL_MAPE_FILEPATH = "data/our_model_mape.joblib"
+ENTSOE_MAPE_FILEPATH = "data/entsoe_mape.joblib"
+
 load_dotenv()
 
 
@@ -53,7 +61,7 @@ def update_forecast(entsoe_api_key: str):
     logger.info("Start downloading data from the ENTSO-E service...")
 
     data_loader = DataLoader(entsoe_api_key=entsoe_api_key)
-    data_loader.update_df(out_df_filepath="data/bronze/df.pickle")
+    data_loader.update_df(out_df_filepath=BRONZE_DF_FILEPATH)
 
     logger.info("Data downloaded")
 
@@ -62,7 +70,7 @@ def update_forecast(entsoe_api_key: str):
     mape_df = PerformanceMeasurer.mape(
         y_true_col="Actual Load",
         y_pred_col="Forecasted Load",
-        data=pd.read_pickle("data/bronze/df.pickle"),
+        data=pd.read_pickle(BRONZE_DF_FILEPATH),
         timedeltas=[
             timedelta(hours=1),
             timedelta(hours=24),
@@ -76,7 +84,7 @@ def update_forecast(entsoe_api_key: str):
         "7d": mape_df.mape.iloc[2],
         "4w": mape_df.mape.iloc[3],
     }
-    joblib.dump(mape, "data/entsoe_mape.joblib")
+    joblib.dump(mape, ENTSOE_MAPE_FILEPATH)
     logger.info(f"ENTSO-E MAPE: {mape}")
     logger.info("Official model's MAPE computed")
 
@@ -84,8 +92,8 @@ def update_forecast(entsoe_api_key: str):
     logger.info("Start cleaning the downloaded data...")
 
     DataCleaner.clean(
-        df=pd.read_pickle("data/bronze/df.pickle"),
-        out_df_filepath="data/silver/df.pickle",
+        df=pd.read_pickle(BRONZE_DF_FILEPATH),
+        out_df_filepath=SILVER_DF_FILEPATH,
     )
 
     logger.info("Data cleaned.")
@@ -93,8 +101,8 @@ def update_forecast(entsoe_api_key: str):
     # Extract features
     logger.info("Start extracting features...")
     FeatureExtractor.extract_features(
-        df=pd.read_pickle("data/silver/df.pickle"),
-        out_df_filepath="data/gold/df.pickle",
+        df=pd.read_pickle(SILVER_DF_FILEPATH),
+        out_df_filepath=GOLD_DF_FILEPATH,
     )
     logger.info("Features extracted.")
 
@@ -102,20 +110,18 @@ def update_forecast(entsoe_api_key: str):
     logger.info("Start back-testing the model...")
     model = Model(n_estimators=int(os.getenv("MODEL_N_ESTIMATORS")))
     latest_load_ts = (
-        pd.read_pickle("data/gold/df.pickle")
-        .dropna(subset=("24h_later_load"))
-        .index.max()
+        pd.read_pickle(GOLD_DF_FILEPATH).dropna(subset=("24h_later_load")).index.max()
     )
     yhat_backtest = model.train_predict(
-        Xy=pd.read_pickle("data/gold/df.pickle"),
+        Xy=pd.read_pickle(GOLD_DF_FILEPATH),
         query_timestamps=[
             pd.Timestamp(latest_load_ts) - timedelta(hours=23) + timedelta(hours=i)
             for i in range(24)
         ],
-        out_yhat_filepath="data/yhat_backtest.pickle",
-        already_computed_yhat_filepath="data/yhat_backtest.pickle",
+        out_yhat_filepath=YHAT_BACKTEST_FILEPATH,
+        already_computed_yhat_filepath=YHAT_BACKTEST_FILEPATH,
     )
-    y_backtest = pd.read_pickle("data/gold/df.pickle")[["24h_later_load"]]
+    y_backtest = pd.read_pickle(GOLD_DF_FILEPATH)[["24h_later_load"]]
     mape_df = PerformanceMeasurer.mape(
         y_true_col="24h_later_load",
         y_pred_col="predicted_24h_later_load",
@@ -129,19 +135,19 @@ def update_forecast(entsoe_api_key: str):
         "1h": mape_df.mape.iloc[0],
         "24h": mape_df.mape.iloc[1],
     }
-    joblib.dump(mape, "data/our_model_mape.joblib")
+    joblib.dump(mape, OUR_MODEL_MAPE_FILEPATH)
     logger.info(f"MAPE: {mape}")
     logger.info("Back-testing done.")
 
     # Train-predict
     logger.info("Start train-predicting the model...")
     model.train_predict(
-        Xy=pd.read_pickle("data/gold/df.pickle"),
+        Xy=pd.read_pickle(GOLD_DF_FILEPATH),
         query_timestamps=[
             pd.Timestamp(latest_load_ts) + timedelta(hours=i) for i in range(1, 25)
         ],
-        out_yhat_filepath="data/yhat.pickle",
-        already_computed_yhat_filepath="data/yhat.pickle",
+        out_yhat_filepath=YHAT_FILEPATH,
+        already_computed_yhat_filepath=YHAT_FILEPATH,
     )
     logger.info("Train-predict done.")
 
@@ -161,7 +167,7 @@ async def get_latest_forecast():
     logger.info("Received GET /latest-forecast")
 
     # Load latest forecast
-    yhat = pd.read_pickle("data/yhat.pickle")
+    yhat = pd.read_pickle(YHAT_FILEPATH)
     latest_forecasts = {
         "timestamps": yhat.index.tolist(),
         "predicted_24h_later_load": yhat["predicted_24h_later_load"].tolist(),
@@ -180,7 +186,7 @@ async def get_entsoe_loads(delta_time: DeltaTime):
     logger.info(f"Received POST /entsoe-loads : {delta_time}")
 
     # Load past loads
-    silver_df = pd.read_pickle("data/silver/df.pickle")
+    silver_df = pd.read_pickle(SILVER_DF_FILEPATH)
 
     # Figure out till when the records should be sent
     end_ts = silver_df.index.max()
@@ -211,7 +217,7 @@ async def get_entsoe_loads(delta_time: DeltaTime):
 async def get_latest_forecast_ts():
     logger.info(f"Received GET /latest-forecast-ts")
 
-    yhat_filepath = Path("data/yhat.pickle")
+    yhat_filepath = Path(YHAT_FILEPATH)
     if not yhat_filepath.is_file():
         logger.warning("No forecast has been created. Sending back -1")
         return {"latest_forecast_ts": -1}
@@ -228,13 +234,13 @@ async def get_latest_mape():
     logger.info(f"Received GET /latest-mape")
 
     # Figure out the ENTSO-E MAPE
-    entsoe_filepath = Path("data/entsoe_mape.joblib")
+    entsoe_filepath = Path(ENTSOE_MAPE_FILEPATH)
     entsoe_mape = {}
     if entsoe_filepath.is_file():
         entsoe_mape = joblib.load(entsoe_filepath)
 
     # Figure out our model's MAPE
-    our_model_filepath = Path("data/our_model_mape.joblib")
+    our_model_filepath = Path(OUR_MODEL_MAPE_FILEPATH)
     our_model_mape = {}
     if our_model_filepath.is_file():
         our_model_mape = joblib.load(our_model_filepath)
