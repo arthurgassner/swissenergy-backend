@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 
 from model_server.data_loader import DataLoader
 
+load_dotenv()
+
 
 def test__get_latest_ts_with_actual_load__empty_dataframe():
     """Empty dataframe should return 2014-01-01 00:00"""
