@@ -163,14 +163,19 @@ async def get_update_forecast(background_tasks: BackgroundTasks):
 
 @app.get("/latest-forecast")
 async def get_latest_forecast():
-
     logger.info("Received GET /latest-forecast")
 
     # Load latest forecast
-    yhat = pd.read_pickle(YHAT_FILEPATH)
+    yhat_filepath = Path(YHAT_FILEPATH)
+    timestamps, predicted_24h_later_load = [], []
+    if yhat_filepath.is_file():
+        yhat = pd.read_pickle(yhat_filepath)
+        timestamps = yhat.index.tolist()
+        predicted_24h_later_load = yhat["predicted_24h_later_load"].tolist()
+
     latest_forecasts = {
-        "timestamps": yhat.index.tolist(),
-        "predicted_24h_later_load": yhat["predicted_24h_later_load"].tolist(),
+        "timestamps": timestamps,
+        "predicted_24h_later_load": predicted_24h_later_load,
     }
 
     logger.info(
