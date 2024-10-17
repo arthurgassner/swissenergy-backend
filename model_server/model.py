@@ -1,15 +1,15 @@
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
-import joblib
 import lightgbm as lgb
-import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_percentage_error
 from tqdm import tqdm
 
 
 class Model:
+    """Class responsible for handling the training, inference and testing of a time-series prediction model."""
+
     def __init__(self, n_estimators: int) -> None:
         # Create untrained-model and dump to disk
         self._model = lgb.LGBMRegressor(
