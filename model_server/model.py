@@ -57,6 +57,7 @@ class Model:
         Xy: pd.DataFrame,
         query_timestamps: List[pd.Timestamp],
         out_yhat_filepath: Optional[str] = None,
+        already_computed_yhat_filepath: Optional[str] = None,
     ) -> pd.Series:
         """Train one model per query_ts in `query_timestamps`.
         Each model will only be training on the features in Xy available strictly BEFORE said query_ts.
@@ -66,15 +67,27 @@ class Model:
             Xy (pd.DataFrame): Dataframe containing the (features, target), where the target is '24h_later_load'
             query_timestamps (List[pd.Timestamp]): Timestamps whose inference we are interested in
             out_yhat_filepath (str, optional): Where to save the predictions.
+            already_computed_yhat_filepath (str, optional): Filepath of already-computed yhats.
+                                                            If given, the timestamps whose yhat exists will not be recomputed.
 
         Returns:
             pd.Series: Dataframe with the predicted values under the column 'predicted_24h_later_load'.
                        The index corresponds to the query_timestamps.
         """
 
+        already_computed_yhat = None
+        already_computed_timestamps = set([])
+        if already_computed_yhat_filepath:
+            if Path(already_computed_yhat_filepath).is_file():
+                already_computed_yhat = pd.read_pickle(already_computed_yhat_filepath)
+                already_computed_timestamps = set(already_computed_yhat.index)
+
         predicted_values = []
         for query_ts in tqdm(query_timestamps):
-            predicted_values.append(self._train_predict(Xy, query_ts))
+            if query_ts in already_computed_timestamps:
+                predicted_values.append(already_computed_yhat.loc[query_ts])
+            else:
+                predicted_values.append(self._train_predict(Xy, query_ts))
 
         yhat = pd.DataFrame(
             {"predicted_24h_later_load": predicted_values},
