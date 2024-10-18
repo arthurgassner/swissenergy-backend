@@ -60,7 +60,7 @@ def update_forecast(entsoe_api_key: str):
     logger.info("Start downloading data from the ENTSO-E service...")
 
     data_loader = DataLoader(entsoe_api_key=entsoe_api_key)
-    data_loader.update_df(out_df_filepath=BRONZE_DF_FILEPATH)
+    data_loader.fetch_df(out_df_filepath=BRONZE_DF_FILEPATH)
 
     logger.info("Data downloaded")
 
