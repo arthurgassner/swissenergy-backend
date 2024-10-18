@@ -6,7 +6,16 @@ from typing import Optional
 import pandas as pd
 from entsoe import EntsoePandasClient
 from entsoe.exceptions import NoMatchingDataError
+from human_readable import precise_delta
 
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler(),
+    ],
+)
 logger = logging.getLogger(__name__)
 
 
@@ -69,16 +78,19 @@ class DataLoader:
             )
 
         try:
+            logging.info(
+                f"Asking the ENTSO-E API for load/forecast data between {start_ts} -> {end_ts} ({precise_delta(end_ts - start_ts, minimum_unit="seconds")})"
+            )
             fetched_df = self._entsoe_pandas_client.query_load_and_forecast(
                 country_code="CH", start=start_ts, end=end_ts
             )
         except NoMatchingDataError:
             logger.warning(f"No data available between {start_ts} -> {end_ts}")
-            fetched_df = pd.DataFrame(
+            fetched_df = pd.DataFrame(  # empty dataframe
                 columns=["Forecasted Load", "Actual Load"],
                 dtype=float,
                 index=pd.DatetimeIndex([], dtype="datetime64[ns, Europe/Zurich]"),
-            )  # empty dataframe
+            )
 
         return fetched_df
 
