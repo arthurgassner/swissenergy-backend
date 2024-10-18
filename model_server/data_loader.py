@@ -91,7 +91,7 @@ class DataLoader:
                     break
                 except NoMatchingDataError:
                     logger.warning(
-                        f"No data available between {start_ts} -> {end_ts} ({precise_delta(end_ts - start_ts, minimum_unit="seconds")})"
+                        f"No data available between {curr_start_ts} -> {curr_end_ts} ({precise_delta(curr_end_ts - curr_start_ts, minimum_unit="seconds")})"
                     )
                     fetched_df = pd.DataFrame(  # empty dataframe
                         columns=["Forecasted Load", "Actual Load"],
