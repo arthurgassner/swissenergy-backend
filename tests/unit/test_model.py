@@ -6,7 +6,7 @@ from model_server.model import Model
 
 
 def test__train_predict__missing_query_ts():
-    """Check whether a ValueError is raised when the Xy.index is missing the query_ts."""
+    """Check whether Xy.index missing the query_ts yields a np.nan prediction."""
 
     # given
     model = Model(n_estimators=10)
@@ -17,8 +17,7 @@ def test__train_predict__missing_query_ts():
     query_ts = pd.Timestamp("2024-10-01 00:00", tz="Europe/Zurich")
 
     # when-then
-    with pytest.raises(ValueError):
-        model._train_predict(Xy, query_ts)
+    assert np.isnan(model._train_predict(Xy, query_ts))
 
 
 def test__train_predict__expected_prediction():
