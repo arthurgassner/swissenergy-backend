@@ -14,4 +14,5 @@ services:
     image: swissenergy-backend-image
 volumes:
   swissenergy-backend-data:
+    external: true
     name: swissenergy-backend-data
