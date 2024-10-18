@@ -11,6 +11,11 @@ class Model:
     """Class responsible for handling the training, inference and testing of a time-series prediction model."""
 
     def __init__(self, n_estimators: int) -> None:
+        """Create a Model object, which encapsulates an LGBMRegressor with `n_estimators` estimators
+
+        Args:
+            n_estimators (int): Amount of estimators of the LGBMRegressor
+        """
         # Create untrained-model and dump to disk
         self._model = lgb.LGBMRegressor(
             n_estimators=n_estimators, force_row_wise=True, verbose=-1

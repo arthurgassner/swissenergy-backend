@@ -37,8 +37,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        # logging.FileHandler("model_server.log"),  # Log to a file
-        logging.StreamHandler(),  # Also log to the shell
+        logging.StreamHandler(),
     ],
 )
 logger = logging.getLogger(__name__)
