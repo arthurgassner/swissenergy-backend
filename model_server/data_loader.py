@@ -36,26 +36,6 @@ class DataLoader:
         # Get API key through website, after kindly asking the support
         self._entsoe_pandas_client = EntsoePandasClient(api_key=entsoe_api_key)
 
-    @staticmethod
-    def _get_latest_ts_with_actual_load(df: pd.DataFrame) -> pd.Timestamp:
-        """Get the timestamp of the latest-available row with a non-NaN 'Actual Load'.
-
-        Args:
-            df (pd.DataFrame): Dataframe whose latest-available timestamp with non-NaN 'Actual Load' we want
-
-        Returns:
-            pd.Timestamp: Latest-available timestamp (tz="Europe/Zurich") with non-NaN 'Actual Load'.
-                          pd.TimeStamp('20140101 00:00', tz="Europe/Zurich") if `df` is empty.
-        """
-
-        if (
-            "Actual Load" in df.columns
-            and (non_na_mask := ~df["Actual Load"].isna()).sum()
-        ):
-            return df[non_na_mask].index.max()
-
-        return pd.Timestamp("20140101 00:00", tz="Europe/Zurich")
-
     def _query_load_and_forecast(
         self, start_ts: pd.Timestamp, end_ts: Optional[pd.Timestamp] = None
     ) -> pd.DataFrame:
@@ -94,39 +74,19 @@ class DataLoader:
 
         return fetched_df
 
-    def update_df(self, out_df_filepath: str) -> None:
-        """Update the currently-on-disk dataframe (.pickle)
-        by downloading -- through the ENTSO-E API -- the rows whose timestamps are after the latest on-disk timestamp.
+    def fetch_df(self, out_df_filepath: str) -> None:
+        """Fetch the forecast/load data from the ENTSO-E API, and dump it to disk.
 
         Args:
             out_df_filepath (str): Filepath where the dataframe (.pickle) should be stored.
         """
-        # Load already-downloaded data
-        current_df = pd.DataFrame(
-            {"Forecasted Load": [], "Actual Load": []},
-            index=pd.DatetimeIndex([], tz="Europe/Zurich"),
-        )
-        if Path(out_df_filepath).is_file():
-            current_df = pd.read_pickle(out_df_filepath)
-
-        # Figure out the timestamp of the latest-available row with a non-NaN 'Actual Load'
-        latest_ts_with_actual_load = DataLoader._get_latest_ts_with_actual_load(
-            df=current_df
-        )
 
         # Fetch loads and forecasts
         fetched_df = self._query_load_and_forecast(
-            start_ts=latest_ts_with_actual_load
-            + pd.Timedelta(1, "m")  # right after (i.e. 1min) the latest ts
+            start_ts=pd.Timestamp("2014-01-01 00:00", tz="Europe/Zurich")
         )
-
-        # Concat the newly-fetched data to the current data
-        # Data after latest_ts_with_actual_load might have been updated
-        current_df = current_df[current_df.index <= latest_ts_with_actual_load]
-        current_df = pd.concat([current_df, fetched_df], axis=0)
 
         # Dump to output df
-        Path(out_df_filepath).parent.mkdir(  # Ensure the folderpath exists
-            parents=True, exist_ok=True
-        )
-        current_df.to_pickle(out_df_filepath)
+        # Ensure the folderpath exists
+        Path(out_df_filepath).parent.mkdir(parents=True, exist_ok=True)
+        fetched_df.to_pickle(out_df_filepath)
