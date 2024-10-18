@@ -118,7 +118,6 @@ def update_forecast(entsoe_api_key: str):
             for i in range(24)
         ],
         out_yhat_filepath=YHAT_BACKTEST_FILEPATH,
-        already_computed_yhat_filepath=YHAT_BACKTEST_FILEPATH,
     )
     y_backtest = pd.read_pickle(GOLD_DF_FILEPATH)[["24h_later_load"]]
     mape_df = PerformanceMeasurer.mape(
@@ -146,7 +145,6 @@ def update_forecast(entsoe_api_key: str):
             pd.Timestamp(latest_load_ts) + timedelta(hours=i) for i in range(1, 25)
         ],
         out_yhat_filepath=YHAT_FILEPATH,
-        already_computed_yhat_filepath=YHAT_FILEPATH,
     )
     logger.info("Train-predict done.")
 
