@@ -30,7 +30,7 @@ class DataLoader:
                                   See https://transparency.entsoe.eu/content/static_content/Static%20content/web%20api/Guide.html
         """
         if entsoe_api_key is None:
-            logger.error(f"Missing `entsoe_api_key`.")
+            logger.error(f"entsoe_api_key cannot be None.")
             raise ValueError
 
         # Get API key through website, after kindly asking the support
