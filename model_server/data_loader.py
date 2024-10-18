@@ -46,6 +46,9 @@ class DataLoader:
     ) -> pd.DataFrame:
         """Query the ENTSO-E API for the load and forecast data from `start_ts` to now+24h.
 
+        It seems that the ENTSO-E API tends to terminate the connection when asking for 10 years of data.
+        Hence, the data is fetched year-by-year -- as it seems to lower the odds of aborted connections.
+
         Args:
             start_ts (pd.Timestamp): Starting ts (tz="Europe/Zurich") of the requested data
             end_ts (Optional[pd.Timestamp]): Ending ts (tz="Europe/Zurich") of the requested data, default to 24h away from now.
@@ -63,33 +66,50 @@ class DataLoader:
                 datetime.now() + timedelta(hours=24), tz="Europe/Zurich"
             )
 
-        n_retries = 0
-        wait_s = 5  # Wait time [s]
-        while n_retries < max_retries:
-            try:
-                logging.info(
-                    f"Asking the ENTSO-E API for load/forecast data between {start_ts} -> {end_ts} ({precise_delta(end_ts - start_ts, minimum_unit="seconds")})"
-                )
-                fetched_df = self._entsoe_pandas_client.query_load_and_forecast(
-                    country_code="CH", start=start_ts, end=end_ts
-                )
-            except NoMatchingDataError:
-                logger.warning(
-                    f"No data available between {start_ts} -> {end_ts} ({precise_delta(end_ts - start_ts, minimum_unit="seconds")})"
-                )
-                fetched_df = pd.DataFrame(  # empty dataframe
-                    columns=["Forecasted Load", "Actual Load"],
-                    dtype=float,
-                    index=pd.DatetimeIndex([], dtype="datetime64[ns, Europe/Zurich]"),
-                )
-            except requests.ConnectionError as e:
-                n_retries += 1
-                logger.warning(
-                    f"Thrown {e}. Retrying {n_retries}/{max_retries} in {wait_s:.2f}s..."
-                )
-                time.sleep(wait_s)
+        # Split up the query into yearly queries
+        start_end_timestamps = []
+        curr_start_ts = start_ts
+        curr_end_ts = min(end_ts, curr_start_ts + timedelta(days=365))
+        while curr_end_ts < end_ts:
+            start_end_timestamps.append((curr_start_ts, curr_end_ts))
+            curr_start_ts = curr_end_ts
+            curr_end_ts = min(end_ts, curr_start_ts + timedelta(days=365))
+        start_end_timestamps.append((curr_start_ts, end_ts))
 
-        return fetched_df
+        fetched_dfs = []
+        wait_s = 1  # Wait time between requests [s]
+        for curr_start_ts, curr_end_ts in start_end_timestamps:
+            logging.info(
+                f"Asking the ENTSO-E API for load/forecast data between {curr_start_ts} -> {curr_end_ts} ({precise_delta(curr_end_ts - curr_start_ts, minimum_unit="seconds")})"
+            )
+            n_retries = 0
+            while n_retries < max_retries:
+                try:
+                    fetched_df = self._entsoe_pandas_client.query_load_and_forecast(
+                        country_code="CH", start=curr_start_ts, end=curr_end_ts
+                    )
+                    break
+                except NoMatchingDataError:
+                    logger.warning(
+                        f"No data available between {start_ts} -> {end_ts} ({precise_delta(end_ts - start_ts, minimum_unit="seconds")})"
+                    )
+                    fetched_df = pd.DataFrame(  # empty dataframe
+                        columns=["Forecasted Load", "Actual Load"],
+                        dtype=float,
+                        index=pd.DatetimeIndex(
+                            [], dtype="datetime64[ns, Europe/Zurich]"
+                        ),
+                    )
+                    break
+                except requests.ConnectionError as e:
+                    n_retries += 1
+                    if not n_retries < max_retries:
+                        raise e
+                    logger.warning(f"Thrown {e}. Retrying {n_retries}/{max_retries}...")
+                time.sleep(wait_s)
+            fetched_dfs.append(fetched_df)
+
+        return pd.concat([fetched_dfs])
 
     def fetch_df(self, out_df_filepath: str) -> None:
         """Fetch the forecast/load data from the ENTSO-E API, and dump it to disk.
