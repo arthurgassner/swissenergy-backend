@@ -77,7 +77,6 @@ class DataLoader:
         start_end_timestamps.append((curr_start_ts, end_ts))
 
         fetched_dfs = []
-        wait_s = 1  # Wait time between requests [s]
         for curr_start_ts, curr_end_ts in start_end_timestamps:
             logging.info(
                 f"Asking the ENTSO-E API for load/forecast data between {curr_start_ts} -> {curr_end_ts} ({precise_delta(curr_end_ts - curr_start_ts, minimum_unit="seconds")})"
@@ -106,7 +105,7 @@ class DataLoader:
                     if not n_retries < max_retries:
                         raise e
                     logger.warning(f"Thrown {e}. Retrying {n_retries}/{max_retries}...")
-                time.sleep(wait_s)
+                time.sleep(1)  # Wait time between requests [s]
             fetched_dfs.append(fetched_df)
 
         return pd.concat(fetched_dfs)
