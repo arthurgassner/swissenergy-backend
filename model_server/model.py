@@ -64,7 +64,7 @@ class Model:
         out_yhat_filepath: Optional[str] = None,
         already_computed_yhat_filepath: Optional[str] = None,
     ) -> pd.Series:
-        """Train one model per query_ts in `query_timestamps`.
+        """Train one model per query_ts in `query_timestamps` not already-present in `already_computed_yhat_filepath`.
         Each model will only be training on the features in Xy available strictly BEFORE said query_ts.
         The features EXACTLY AT the query_ts will be used to predict the `24h_later_load`.
 
