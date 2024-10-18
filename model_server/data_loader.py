@@ -109,7 +109,7 @@ class DataLoader:
                 time.sleep(wait_s)
             fetched_dfs.append(fetched_df)
 
-        return pd.concat([fetched_dfs])
+        return pd.concat(fetched_dfs)
 
     def fetch_df(self, out_df_filepath: str) -> None:
         """Fetch the forecast/load data from the ENTSO-E API, and dump it to disk.
