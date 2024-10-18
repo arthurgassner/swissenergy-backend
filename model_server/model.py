@@ -91,7 +91,9 @@ class Model:
         predicted_values = []
         for query_ts in tqdm(query_timestamps):
             if query_ts in already_computed_timestamps:
-                predicted_values.append(already_computed_yhat.loc[query_ts])
+                predicted_values.append(
+                    already_computed_yhat.loc[query_ts, "predicted_24h_later_load"]
+                )
             else:
                 predicted_values.append(self._train_predict(Xy, query_ts))
 
