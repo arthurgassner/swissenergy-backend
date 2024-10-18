@@ -80,6 +80,7 @@ class Model:
                        The index corresponds to the query_timestamps.
         """
 
+        # Figure out which timestamps already have a prediction
         already_computed_yhat = None
         already_computed_timestamps = set([])
         if already_computed_yhat_filepath:
