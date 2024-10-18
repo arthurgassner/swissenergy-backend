@@ -44,7 +44,7 @@ class DataLoader:
         end_ts: Optional[pd.Timestamp] = None,
         max_retries: int = 10,
     ) -> pd.DataFrame:
-        """Query the ENTSO-E API for the load and forecast data from `start_ts` to now+24h.
+        """Query the ENTSO-E API for the load and forecast data from `start_ts` to `end_ts`, breaking it down into yearly-queries.
 
         It seems that the ENTSO-E API tends to terminate the connection when asking for 10 years of data.
         Hence, the data is fetched year-by-year -- as it seems to lower the odds of aborted connections.
