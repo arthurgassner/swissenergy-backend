@@ -151,6 +151,12 @@ def update_forecast(entsoe_api_key: str):
     logger.info("Train-predict done.")
 
 
+@app.get("/")
+async def get_root():
+    logger.info(f"Received GET /")
+    return {"message": "Welcome to the swissenergy-backend!"}
+
+
 @app.get("/update-forecast")
 async def get_update_forecast(background_tasks: BackgroundTasks):
     logger.info(f"Received GET /update-forecast")
