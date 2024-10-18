@@ -1,4 +1,5 @@
 import logging
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
@@ -63,6 +64,7 @@ class DataLoader:
             )
 
         n_retries = 0
+        wait_s = 5  # Wait time [s]
         while n_retries < max_retries:
             try:
                 logging.info(
@@ -82,7 +84,10 @@ class DataLoader:
                 )
             except requests.ConnectionError as e:
                 n_retries += 1
-                logger.warning(f"Thrown {e}. Retry {n_retries}/{max_retries}...")
+                logger.warning(
+                    f"Thrown {e}. Retrying {n_retries}/{max_retries} in {wait_s:.2f}s..."
+                )
+                time.sleep(wait_s)
 
         return fetched_df
 
