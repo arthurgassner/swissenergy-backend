@@ -49,7 +49,7 @@ class DataLoader:
         Args:
             start_ts (pd.Timestamp): Starting ts (tz="Europe/Zurich") of the requested data
             end_ts (Optional[pd.Timestamp]): Ending ts (tz="Europe/Zurich") of the requested data, default to 24h away from now.
-            max_retries (int): Max amount of retries, as the ENTSO-E API tends to aborting the connection.
+            max_retries (int): Max amount of retries, as the ENTSO-E API tends to abort the connection.
 
         Returns:
             pd.DataFrame: Fetched data.
