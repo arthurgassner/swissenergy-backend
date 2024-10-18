@@ -1,10 +1,21 @@
+import logging
 from pathlib import Path
 from typing import List, Optional
 
 import lightgbm as lgb
+import numpy as np
 import pandas as pd
-from sklearn.metrics import mean_absolute_percentage_error
 from tqdm import tqdm
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler(),
+    ],
+)
+logger = logging.getLogger(__name__)
 
 
 class Model:
@@ -29,12 +40,9 @@ class Model:
             Xy (pd.DataFrame): Dataframe containing the (features, target), where the target is '24h_later_load'
             query_ts (pd.Timestamp): Timestamp whose inference we are interested in
 
-        Raises:
-            ValueError: If the query_ts is missing from Xy's index,
-                        i.e. the features for the timestamp of interest are missing.
-
         Returns:
-            float: Predicted value for '24h_later_load'
+            float: Predicted value for '24h_later_load',
+                   np.nan if the features were missing from Xy
         """
 
         assert isinstance(Xy.index, pd.DatetimeIndex)
@@ -43,7 +51,11 @@ class Model:
 
         # Extract the serving Xy
         if not query_ts in Xy.index:
-            raise ValueError(f"Query timestamp {query_ts} is missing from Xy's index.")
+            logger.warning(
+                f"Query timestamp {query_ts} is missing from Xy's index. Cannot run prediction."
+            )
+            return np.nan
+
         X_serving = Xy.loc[[query_ts]].drop(columns=["24h_later_load"])
 
         # Prepare training data

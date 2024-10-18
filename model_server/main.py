@@ -170,7 +170,9 @@ async def get_latest_forecast():
     if yhat_filepath.is_file():
         yhat = pd.read_pickle(yhat_filepath)
         timestamps = yhat.index.tolist()
-        predicted_24h_later_load = yhat["predicted_24h_later_load"].tolist()
+        predicted_24h_later_load = (
+            yhat["predicted_24h_later_load"].fillna("NaN").tolist()
+        )
 
     latest_forecasts = {
         "timestamps": timestamps,
