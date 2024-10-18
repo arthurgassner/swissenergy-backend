@@ -76,6 +76,7 @@ class DataLoader:
             curr_end_ts = min(end_ts, curr_start_ts + timedelta(days=365))
         start_end_timestamps.append((curr_start_ts, end_ts))
 
+        # Send each yearly-query to the ENTSO-E API
         fetched_dfs = []
         for curr_start_ts, curr_end_ts in start_end_timestamps:
             logging.info(
