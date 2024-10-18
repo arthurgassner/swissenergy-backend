@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Optional
 
 import pandas as pd
+import requests
 from entsoe import EntsoePandasClient
 from entsoe.exceptions import NoMatchingDataError
 from human_readable import precise_delta
@@ -37,13 +38,17 @@ class DataLoader:
         self._entsoe_pandas_client = EntsoePandasClient(api_key=entsoe_api_key)
 
     def _query_load_and_forecast(
-        self, start_ts: pd.Timestamp, end_ts: Optional[pd.Timestamp] = None
+        self,
+        start_ts: pd.Timestamp,
+        end_ts: Optional[pd.Timestamp] = None,
+        max_retries: int = 10,
     ) -> pd.DataFrame:
         """Query the ENTSO-E API for the load and forecast data from `start_ts` to now+24h.
 
         Args:
             start_ts (pd.Timestamp): Starting ts (tz="Europe/Zurich") of the requested data
             end_ts (Optional[pd.Timestamp]): Ending ts (tz="Europe/Zurich") of the requested data, default to 24h away from now.
+            max_retries (int): Max amount of retries, as the ENTSO-E API tends to aborting the connection.
 
         Returns:
             pd.DataFrame: Fetched data.
@@ -57,20 +62,27 @@ class DataLoader:
                 datetime.now() + timedelta(hours=24), tz="Europe/Zurich"
             )
 
-        try:
-            logging.info(
-                f"Asking the ENTSO-E API for load/forecast data between {start_ts} -> {end_ts} ({precise_delta(end_ts - start_ts, minimum_unit="seconds")})"
-            )
-            fetched_df = self._entsoe_pandas_client.query_load_and_forecast(
-                country_code="CH", start=start_ts, end=end_ts
-            )
-        except NoMatchingDataError:
-            logger.warning(f"No data available between {start_ts} -> {end_ts}")
-            fetched_df = pd.DataFrame(  # empty dataframe
-                columns=["Forecasted Load", "Actual Load"],
-                dtype=float,
-                index=pd.DatetimeIndex([], dtype="datetime64[ns, Europe/Zurich]"),
-            )
+        n_retries = 0
+        while n_retries < max_retries:
+            try:
+                logging.info(
+                    f"Asking the ENTSO-E API for load/forecast data between {start_ts} -> {end_ts} ({precise_delta(end_ts - start_ts, minimum_unit="seconds")})"
+                )
+                fetched_df = self._entsoe_pandas_client.query_load_and_forecast(
+                    country_code="CH", start=start_ts, end=end_ts
+                )
+            except NoMatchingDataError:
+                logger.warning(
+                    f"No data available between {start_ts} -> {end_ts} ({precise_delta(end_ts - start_ts, minimum_unit="seconds")})"
+                )
+                fetched_df = pd.DataFrame(  # empty dataframe
+                    columns=["Forecasted Load", "Actual Load"],
+                    dtype=float,
+                    index=pd.DatetimeIndex([], dtype="datetime64[ns, Europe/Zurich]"),
+                )
+            except requests.ConnectionError as e:
+                n_retries += 1
+                logger.warning(f"Thrown {e}. Retry {n_retries}/{max_retries}...")
 
         return fetched_df
 
