@@ -1,0 +1,15 @@
+name: swissenergy-backend
+services:
+    swissenergy-backend-image:
+        env_file:
+            - ~/swissenergy-backend/.env
+        container_name: swissenergy-backend
+        ports:
+            - 8080:80
+        volumes:
+            - swissenergy-backend-data:/code/data
+        image: swissenergy-backend-image
+volumes:
+    swissenergy-backend-data:
+        external: true
+        name: swissenergy-backend-data
