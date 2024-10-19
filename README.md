@@ -1,5 +1,7 @@
 # `swissenergy-backend`
 
+> The project is better understood through its 🚀 [**dashboard and detailed write-up**](swissenergy.arthurgassner.ch) 🚀.
+
 This repository contains the ML backend powering a energy consumption prediction.
 
 Inspired by the [SFOE's energy consumption dashboard](https://www.energiedashboard.admin.ch/strom/stromverbrauch), I figured it would be a great opportunity to showcase an end-to-end ML project, going over the challenges one encounters during
@@ -13,9 +15,7 @@ Inspired by the [SFOE's energy consumption dashboard](https://www.energiedashboa
 
 ![](img/dashboard.gif)
 
-A **dashboard and complete write-up** of each stage can be found 🚀 [here](swissenergy.arthurgassner.ch) 🚀. <br>
-
-> I _heavily_ encourage you to check out the writeup to make sense of this repo, as it goes through each stage methodically.
+> I _heavily_ encourage you to check out the write-up to make sense of this repo, as it goes through each stage methodically.
 
 ## Repo structure
 
@@ -37,6 +37,6 @@ The repo is structured as follows
 
 ## Running the backend
 
-The backend is meant to be run as a dockerized app, running off some machine. This [project's writeup](swissenergy.arthurgassner.ch) goes in depth about how to run this project.
+The backend is meant to be run as a dockerized app, running off some machine. This project's [write-up](swissenergy.arthurgassner.ch) goes in depth about how to run the backend.
 
 ![](img/backend.png)
