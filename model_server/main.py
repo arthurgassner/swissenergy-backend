@@ -111,10 +111,10 @@ def update_forecast(entsoe_api_key: str):
     latest_load_ts = (
         pd.read_pickle(GOLD_DF_FILEPATH).dropna(subset=("24h_later_load")).index.max()
     )
-    # [latest_load_ts - 24h; latest_load_ts]
-    past_24h_timestamps = pd.date_range(
+
+    past_24h_timestamps = pd.date_range(  # [latest_load_ts - 24h; latest_load_ts]
         start=latest_load_ts - timedelta(hours=23), end=latest_load_ts, freq="h"
-    )
+    ).to_list()
     yhat_backtest = model.train_predict(
         Xy=pd.read_pickle(GOLD_DF_FILEPATH),
         query_timestamps=past_24h_timestamps,
