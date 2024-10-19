@@ -17,7 +17,7 @@ Inspired by the [SFOE's energy consumption dashboard](https://www.energiedashboa
 
 ![](img/dashboard.gif)
 
-> I _heavily_ encourage you to check out the 🚀 [**write-up**](https://swissenergy.arthurgassner.ch/motivation) 🚀 to make sense of this repo, as it goes through each stage methodically.
+> I _heavily_ encourage you to check out the 🚀 [**write-up**](https://swissenergy.arthurgassner.ch) 🚀 to make sense of this repo, as it goes through each stage methodically.
 
 ## Repo structure
 
@@ -41,6 +41,6 @@ The repo is structured as follows
 
 ## Running the backend
 
-The backend is meant to be run as a dockerized app, running off some machine. This project's [write-up](swissenergy.arthurgassner.ch) goes in depth about how to run the backend.
+The backend is meant to be run as a dockerized app, running off some machine. This project's [write-up](https://swissenergy.arthurgassner.ch) goes in depth about how to run the backend.
 
 ![](img/backend.png)
