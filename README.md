@@ -1,6 +1,8 @@
 # `swissenergy-backend`
 
-> The project is better understood through its 🚀 [**dashboard and detailed write-up**](swissenergy.arthurgassner.ch) 🚀.
+> The project is better understood through its 🚀 [**dashboard and detailed write-up**](https://swissenergy.arthurgassner.ch) 🚀.
+
+<br>
 
 This repository contains the ML backend powering a energy consumption prediction.
 
@@ -15,24 +17,26 @@ Inspired by the [SFOE's energy consumption dashboard](https://www.energiedashboa
 
 ![](img/dashboard.gif)
 
-> I _heavily_ encourage you to check out the write-up to make sense of this repo, as it goes through each stage methodically.
+> I _heavily_ encourage you to check out the 🚀 [**write-up**](https://swissenergy.arthurgassner.ch/motivation) 🚀 to make sense of this repo, as it goes through each stage methodically.
 
 ## Repo structure
 
 The repo is structured as follows
 
 ```bash 
-├── data_checks.ipynb # Used to manually check our data
-├── docker-compose.yml 
-├── Dockerfile
 ├── img 
 ├── model_server # ML backend
 ├── nb-dev # Notebooks created during the EDA/Modelling phase
-├── README.md
-├── requirements.txt
-├── sanity_checks.ipynb # Used to manually check our some inputs
 ├── tests # pytests
-└── viz # Visualization built for the writeup
+├── viz # Visualization built for the writeup
+├── .gitignore 
+├── .pre-commit-config.yaml 
+├── Dockerfile
+├── README.md
+├── data_checks.ipynb # Used to manually check our data
+├── docker-compose.yml 
+├── requirements.txt
+└── sanity_checks.ipynb # Used to manually check our some inputs
 ```
 
 ## Running the backend
