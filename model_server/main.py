@@ -2,6 +2,7 @@ import logging
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
+from random import sample
 
 import joblib
 import pandas as pd
@@ -112,12 +113,28 @@ def update_forecast(entsoe_api_key: str):
         pd.read_pickle(GOLD_DF_FILEPATH).dropna(subset=("24h_later_load")).index.max()
     )
 
-    past_24h_timestamps = pd.date_range(  # [latest_load_ts - 24h; latest_load_ts]
-        start=latest_load_ts - timedelta(hours=23), end=latest_load_ts, freq="h"
+    # Figure out ranges to timestamps to test on
+    past_24h_ts = latest_load_ts - timedelta(hours=23)
+    past_1w_ts = latest_load_ts - timedelta(weeks=1)
+    past_4w_ts = latest_load_ts - timedelta(weeks=4)
+
+    past_24h_timestamps = pd.date_range(
+        start=past_24h_ts, end=latest_load_ts, freq="h"
     ).to_list()
+    past_1w_timestamps = pd.date_range(
+        start=past_1w_ts, end=past_24h_ts, freq="h"
+    ).to_list()
+    past_4w_timestamps = pd.date_range(
+        start=past_4w_ts, end=past_1w_ts, freq="h"
+    ).to_list()
+
+    # Estimate the MAPE off 10% (17 and 50) of the points for the past week/month
+    # To avoid heavy computations
     yhat_backtest = model.train_predict(
         Xy=pd.read_pickle(GOLD_DF_FILEPATH),
-        query_timestamps=past_24h_timestamps,
+        query_timestamps=past_24h_timestamps
+        + sample(past_1w_timestamps, 17)
+        + sample(past_4w_timestamps, 50),
         out_yhat_filepath=YHAT_BACKTEST_FILEPATH,
     )
     y_backtest = pd.read_pickle(GOLD_DF_FILEPATH)[["24h_later_load"]]
@@ -128,11 +145,15 @@ def update_forecast(entsoe_api_key: str):
         timedeltas=[
             timedelta(hours=1),
             timedelta(hours=24),
+            timedelta(weeks=1),
+            timedelta(weeks=4),
         ],
     )
     mape = {
         "1h": mape_df.mape.iloc[0],
         "24h": mape_df.mape.iloc[1],
+        "7d": mape_df.mape.iloc[2],
+        "4w": mape_df.mape.iloc[3],
     }
     joblib.dump(mape, OUR_MODEL_MAPE_FILEPATH)
     logger.info(f"MAPE: {mape}")
