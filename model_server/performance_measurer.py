@@ -36,12 +36,11 @@ class PerformanceMeasurer:
 
         # Check the input is as we expect
         assert isinstance(data.index, pd.DatetimeIndex)
-        assert data.index.is_monotonic_increasing
         assert data.index.is_unique
         assert y_true_col in data.columns
         assert y_pred_col in data.columns
 
-        data = data.dropna(subset=(y_true_col, y_pred_col))
+        data = data.dropna(subset=(y_true_col, y_pred_col)).sort_index()
         max_ts = data.index.max()
 
         starting_ts_to_mape = {}
