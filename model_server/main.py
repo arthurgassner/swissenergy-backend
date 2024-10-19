@@ -20,7 +20,7 @@ from .performance_measurer import PerformanceMeasurer
 BRONZE_DF_FILEPATH = "data/bronze/df.pickle"
 SILVER_DF_FILEPATH = "data/silver/df.pickle"
 GOLD_DF_FILEPATH = "data/gold/df.pickle"
-YHAT_BACKTEST_FILEPATH = "data/yhat_backtest.pickle"
+WALKFORWARD_YHAT_FILEPATH = "data/walkforward_yhat.pickle"
 YHAT_FILEPATH = "data/yhat.pickle"
 OUR_MODEL_MAPE_FILEPATH = "data/our_model_mape.joblib"
 ENTSOE_MAPE_FILEPATH = "data/entsoe_mape.joblib"
@@ -106,8 +106,8 @@ def update_forecast(entsoe_api_key: str):
     )
     logger.info("Features extracted.")
 
-    # Backtest model
-    logger.info("Start back-testing the model...")
+    # Walk-forward validate the model
+    logger.info("Start walk-forward validation of the model...")
     model = Model(n_estimators=int(os.getenv("MODEL_N_ESTIMATORS")))
     latest_load_ts = (
         pd.read_pickle(GOLD_DF_FILEPATH).dropna(subset=("24h_later_load")).index.max()
@@ -130,18 +130,18 @@ def update_forecast(entsoe_api_key: str):
 
     # Estimate the MAPE off 10% (17 and 50) of the points for the past week/month
     # To avoid heavy computations
-    yhat_backtest = model.train_predict(
+    walkforward_yhat = model.train_predict(
         Xy=pd.read_pickle(GOLD_DF_FILEPATH),
         query_timestamps=past_24h_timestamps
         + sample(past_1w_timestamps, 17)
         + sample(past_4w_timestamps, 50),
-        out_yhat_filepath=YHAT_BACKTEST_FILEPATH,
+        out_yhat_filepath=WALKFORWARD_YHAT_FILEPATH,
     )
-    y_backtest = pd.read_pickle(GOLD_DF_FILEPATH)[["24h_later_load"]]
+    walkforward_y = pd.read_pickle(GOLD_DF_FILEPATH)[["24h_later_load"]]
     mape_df = PerformanceMeasurer.mape(
         y_true_col="24h_later_load",
         y_pred_col="predicted_24h_later_load",
-        data=yhat_backtest.join(y_backtest, how="left"),
+        data=walkforward_yhat.join(walkforward_y, how="left"),
         timedeltas=[
             timedelta(hours=1),
             timedelta(hours=24),
@@ -157,7 +157,7 @@ def update_forecast(entsoe_api_key: str):
     }
     joblib.dump(mape, OUR_MODEL_MAPE_FILEPATH)
     logger.info(f"MAPE: {mape}")
-    logger.info("Back-testing done.")
+    logger.info("Walk-forward validation done.")
 
     # Train-predict
     logger.info("Start train-predicting the model...")
