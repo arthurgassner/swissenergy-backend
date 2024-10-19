@@ -1,51 +1,42 @@
-# Swiss-energy
+# `swissenergy-backend`
 
-Inspired by the [SFOE's energy consumption dashboard](https://www.energiedashboard.admin.ch/strom/stromverbrauch), I wondered how accurate these energy consumption predictions could get only using public data.
+This repository contains the ML backend powering a energy consumption prediction.
 
-This repo gathers the early-stages of my efforts to answer that question.
+Inspired by the [SFOE's energy consumption dashboard](https://www.energiedashboard.admin.ch/strom/stromverbrauch), I figured it would be a great opportunity to showcase an end-to-end ML project, going over the challenges one encounters during
 
-## Data
+- Problem Understanding
+- Data Ingestion
+- Exploratory Data Analysis
+- Machine Learning Modelling
+- Industrialization
+- Deployment
 
-The data is sourced from [ENTSO-E](https://transparency.entsoe.eu/load-domain/r2/totalLoadR2/show?name=&defaultValue=true&viewType=TABLE&areaType=BZN&atch=false&dateTime.dateTime=08.12.2022+00:00|CET|DAY&biddingZone.values=CTY|10YCH-SWISSGRIDZ!BZN|10YCH-SWISSGRIDZ&dateTime.timezone=CET_CEST&dateTime.timezone_input=CET+(UTC+1)+/+CEST+(UTC+2)).
+![](img/dashboard.gif)
 
-> The ENTSO-E is TODO.
+A **dashboard and complete write-up** of each stage can be found 🚀 [here](swissenergy.arthurgassner.ch) 🚀. <br>
 
-> Note that they say themselves that the data is not to be trusted blindly [here TODO].
+> I _heavily_ encourage you to check out the writeup to make sense of this repo, as it goes through each stage methodically.
 
+## Repo structure
 
-## TODOs
+The repo is structured as follows
 
-### Data
-- [x] Locally get all data up to some recent point in time 
+```bash 
+├── data_checks.ipynb # Used to manually check our data
+├── docker-compose.yml 
+├── Dockerfile
+├── img 
+├── model_server # ML backend
+├── nb-dev # Notebooks created during the EDA/Modelling phase
+├── README.md
+├── requirements.txt
+├── sanity_checks.ipynb # Used to manually check our some inputs
+├── tests # pytests
+└── viz # Visualization built for the writeup
+```
 
-### Modelling
-- [x] Measure the performance of their current approach
-- [x] Build a dummy baseline that predicts the consumption 24h-from-now as last hour's consumption
-- [x] Build a back-testing approach, to accurately compare models' performances
-- [x] Build a LGBM-based model leveraging the last hour's consumption
-- [x] Perform feature engineering to enrich the data with the hourly-consumption 24h ago, and a week ago.
-- [x] Perform feature engineering to enrich the data with statistics about the previous hourly-consumptions, over 24h and 7d.
-- [x] Build a training notebook, where the best model can be trained from scratch.
-- [ ] Perform hyperparameters search (`optuna`), potentially also through the features used.
-- [ ] Use weather-related covariates -- both past and future -- as features.
-- [ ] Use Swiss-stock-market covariates -- both past and future -- as features.
-- [ ] Leverage the energy outage data as past covariate.
+## Running the backend
 
-### MLOps
+The backend is meant to be run as a dockerized app, running off some machine. This [project's writeup](swissenergy.arthurgassner.ch) goes in depth about how to run this project.
 
-- [x] Move the modelling efforts into a `.py`
-- [x] Build a FastAPI server
-- [x] Dockerize the `.py`
-- [x] Deploy the docker image on a VPS
-- [ ] Setup a Cron job to retrain the model hourly
-- [ ] Build a small webserver allowing access to the ENTSOE-DF data and the latest model's prediction
-- [ ] Host that webserver on the VPS, allowing access through the internet
-- [ ] Automatically update the software on the VPS through GitHub Actions
-
-### Website
-
-- [ ] Build a rudimentary website showcasing a plot of the current prediction.
-- [ ] Use the website to explain your approach to EDA, modelling and MLOPs
-- [ ] EDA: Talk about autocorrelation, window-average
-- [ ] Modelling: Talk about back-testing, back-testing with sampling to avoid losing too much time on compute, how to represent a time series as a regression problem
-- [ ] MLOps: Talk about how to deploy on a VPS
+![](img/backend.png)
