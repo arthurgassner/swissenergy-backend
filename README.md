@@ -1,6 +1,7 @@
 # `swissenergy-backend`
 
-> The project is better understood through its 🚀 [**dashboard and detailed write-up**](https://swissenergy.arthurgassner.ch) 🚀.
+> [!IMPORTANT] 
+> The project is better understood through its live 🚀 [**dashboard and detailed write-up**](https://swissenergy.arthurgassner.ch) 🚀.
 
 <br>
 
@@ -17,6 +18,7 @@ Inspired by the [SFOE's energy consumption dashboard](https://www.energiedashboa
 
 ![](img/dashboard.gif)
 
+> [!IMPORTANT]
 > I _heavily_ encourage you to check out the 🚀 [**write-up**](https://swissenergy.arthurgassner.ch) 🚀 to make sense of this repo, as it goes through each stage methodically.
 
 ## Repo structure
