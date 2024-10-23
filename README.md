@@ -1,4 +1,4 @@
-# `swissenergy-backend`
+# swissenergy-backend
 
 > [!IMPORTANT] 
 > The project is better understood through its live 🚀 [**dashboard and detailed write-up**](https://swissenergy.arthurgassner.ch) 🚀.
