@@ -1,7 +1,8 @@
 # swissenergy-backend
 
 > [!IMPORTANT] 
-> The project is better understood through its live 🚀 [**dashboard and detailed write-up**](https://swissenergy.arthurgassner.ch) 🚀.
+> The project is better understood through its live
+> <p align="center">🚀 [**dashboard and detailed write-up**](https://swissenergy.arthurgassner.ch) 🚀</p>
 
 <br>
 
