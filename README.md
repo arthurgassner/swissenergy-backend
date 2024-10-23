@@ -1,10 +1,8 @@
 # swissenergy-backend
 
 > [!IMPORTANT] 
-> The project is better understood through its live
-> <p align="center">🚀 [**dashboard and detailed write-up**](https://swissenergy.arthurgassner.ch) 🚀</p>
-
-<br>
+> The project is better understood through its
+> <p style="text-align: center;">🚀 <a href="https://swissenergy.arthurgassner.ch"><strong>live dashboard & detailed write-up</strong></a> 🚀</p>
 
 This repository contains the ML backend powering an energy consumption prediction dashboard.
 
