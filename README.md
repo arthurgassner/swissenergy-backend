@@ -4,6 +4,8 @@
 > The project is better understood through its
 > <p style="text-align: center;">🚀 <a href="https://swissenergy.arthurgassner.ch"><strong>live dashboard & detailed write-up</strong></a> 🚀</p>
 
+<br>
+
 This repository contains the ML backend powering an energy consumption prediction dashboard.
 
 Inspired by the [SFOE's energy consumption dashboard](https://www.energiedashboard.admin.ch/strom/stromverbrauch), I figured it would be a great opportunity to showcase an end-to-end ML project, going over the challenges one encounters during
