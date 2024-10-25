@@ -113,6 +113,23 @@ class DataLoader:
 
     @staticmethod
     def enforce_data_quality(df: pd.DataFrame) -> None:
+        """Enforce the data quality of df -- as we expect it to be when coming straight from the ENTSO-E API.
+
+        If a poor data quality is detected, recover if possible, else throw a ValueError.
+
+        Args:
+            df (pd.DataFrame): Dataframe fresh from the ENTSO-E API.
+
+        Raises:
+            ValueError: If not isinstance(df.index, pd.DatetimeIndex)
+            ValueError: If df.index.dtype != "datetime64[ns, Europe/Zurich]"
+            ValueError: If len(df.columns) != 2
+            ValueError: If df.columns != ["Forecasted Load", "Actual Load"]
+            ValueError: If df.dtypes.to_list() != ['float64', 'float64']
+
+        Returns:
+            pd.DataFrame: Input dataframe with data quality enforced.
+        """
 
         # Enforce the data quality of the index
         # errors
