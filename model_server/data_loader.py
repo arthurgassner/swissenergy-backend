@@ -185,6 +185,9 @@ class DataLoader:
             start_ts=pd.Timestamp("2014-01-01 00:00", tz="Europe/Zurich")
         )
 
+        # Enfore data quality
+        df = DataLoader.enforce_data_quality(df)
+
         # Dump to output df
         # Ensure the folderpath exists
         Path(out_df_filepath).parent.mkdir(parents=True, exist_ok=True)
