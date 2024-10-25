@@ -111,6 +111,51 @@ class DataLoader:
 
         return pd.concat(fetched_dfs)
 
+    @staticmethod
+    def enforce_data_quality(df: pd.DataFrame) -> None:
+
+        # Enforce the data quality of the index
+        # errors
+        if not isinstance(df.index, pd.DatetimeIndex):
+            logger.error(
+                f"df.index should be an instance of pd.DatetimeIndex, but is: {type(df.index)}"
+            )
+            raise ValueError
+        if df.index.dtype != "datetime64[ns, Europe/Zurich]":
+            logger.error(
+                f"df.index.dtype should be datetime64[ns, Europe/Zurich] but is: {df.index.dtype}"
+            )
+            raise ValueError
+
+        # warnings
+        if not df.index.is_unique:
+            logger.warning(
+                f"df.index should be unique, but has {(df.index.value_counts() > 1).sum()} duplicated index. Forcing index's uniqueness by aggregating duplicated index with median..."
+            )
+            df = df.groupby(df.index).median()
+        if not df.index.is_monotonic_increasing:
+            logger.warning(
+                "df.index should be monotonic increasing, but isn't. Forcing index's monotonic increase by sorting the index..."
+            )
+            df = df.sort_index()
+
+        # Enforce the data quality of the columns
+        if len(df.columns) != 2:
+            logger.error(f"df should only have 2 columns, but has {len(df.columns)}")
+            raise ValueError
+        if df.columns[0] == "Forecasted Load" and df.columns[1] == "Actual Load":
+            logger.error(
+                f"df.columns should be ['Forecasted Load', 'Actual Load'], but is {df.columns}"
+            )
+            raise ValueError
+        if (df.dtypes == "float64").all():
+            logger.error(
+                f"df.dtypes should be ['float64', 'float64'], but are {df.dtypes.to_list()}"
+            )
+            raise ValueError
+
+        return df
+
     def fetch_df(self, out_df_filepath: str) -> None:
         """Fetch the forecast/load data from the ENTSO-E API, and dump it to disk.
 
