@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 import numpy as np
 import pandas as pd
+import pytest
 from dotenv import load_dotenv
 
 from model_server.data_loader import DataLoader
@@ -111,3 +112,144 @@ def test__query_load_and_forecast__specitic_ts():
     # dtypes
     assert (fetched_df.dtypes == "float64").all()  # correct dtype
     assert fetched_df.index.dtype == "datetime64[ns, Europe/Zurich]"  # correct timezone
+
+
+def test_enforce_data_quality__index_type():
+    """Check that if not isinstance(df.index, pd.DatetimeIndex), a ValueError is raised."""
+
+    # Given a df of the expected format
+    df = pd.DataFrame(
+        {
+            "Forecasted Load": [7890.0, np.nan, np.nan],
+            "Actual Load": [np.nan, 7890.0, np.nan],
+        },
+        index=pd.DataFrame(
+            [
+                pd.Timestamp("20240101 23:45", tz="Europe/Zurich"),
+                pd.Timestamp("20240201 23:45", tz="Europe/Zurich"),
+                pd.Timestamp("20240301 23:45", tz="Europe/Zurich"),
+            ]
+        ),
+    )
+
+    # when-then
+    with pytest.raises(ValueError):
+        df = DataLoader.enforce_data_quality(df)
+
+
+def test_enforce_data_quality__index_tz():
+    """Check that if df.index.dtype != "datetime64[ns, Europe/Zurich]", a ValueError is raised."""
+
+    # Given a df of the expected format
+    df = pd.DataFrame(
+        {
+            "Forecasted Load": [7890.0, np.nan, np.nan],
+            "Actual Load": [np.nan, 7890.0, np.nan],
+        },
+        index=pd.DatetimeIndex(
+            [
+                pd.Timestamp("20240101 23:45", tz="Europe/Berlin"),
+                pd.Timestamp("20240201 23:45", tz="Europe/Berlin"),
+                pd.Timestamp("20240301 23:45", tz="Europe/Berlin"),
+            ]
+        ),
+    )
+
+    # when-then
+    with pytest.raises(ValueError):
+        df = DataLoader.enforce_data_quality(df)
+
+
+def test_enforce_data_quality__two_columns():
+    """Check that if len(df.columns) != 2, a ValueError is raised."""
+
+    # Given a df of the expected format
+    df = pd.DataFrame(
+        {
+            "Forecasted Load": [7890.0, np.nan, np.nan],
+            "Actual Load": [np.nan, 7890.0, np.nan],
+            "Some Third Column": [0, 0, 0],
+        },
+        index=pd.DatetimeIndex(
+            [
+                pd.Timestamp("20240101 23:45", tz="Europe/Zurich"),
+                pd.Timestamp("20240201 23:45", tz="Europe/Zurich"),
+                pd.Timestamp("20240301 23:45", tz="Europe/Zurich"),
+            ]
+        ),
+    )
+
+    # when-then
+    with pytest.raises(ValueError):
+        df = DataLoader.enforce_data_quality(df)
+
+
+def test_enforce_data_quality__column_names():
+    """Check that if df.columns != ["Forecasted Load", "Actual Load"], a ValueError is raised."""
+
+    # Given a df of the expected format
+    df = pd.DataFrame(
+        {
+            "Forecasted Load": [7890.0, np.nan, np.nan],
+            "Wrong column name": [np.nan, 7890.0, np.nan],
+        },
+        index=pd.DatetimeIndex(
+            [
+                pd.Timestamp("20240101 23:45", tz="Europe/Zurich"),
+                pd.Timestamp("20240201 23:45", tz="Europe/Zurich"),
+                pd.Timestamp("20240301 23:45", tz="Europe/Zurich"),
+            ]
+        ),
+    )
+
+    # when-then
+    with pytest.raises(ValueError):
+        df = DataLoader.enforce_data_quality(df)
+
+
+def test_enforce_data_quality__dtypes():
+    """Check that if df.dtypes.to_list() != ['float64', 'float64'], a ValueError is raised."""
+
+    # Given a df of the expected format
+    df = pd.DataFrame(
+        {
+            "Forecasted Load": ["a", "b", "c"],
+            "Actual Load": ["d", "e", "f"],
+        },
+        index=pd.DatetimeIndex(
+            [
+                pd.Timestamp("20240101 23:45", tz="Europe/Zurich"),
+                pd.Timestamp("20240201 23:45", tz="Europe/Zurich"),
+                pd.Timestamp("20240301 23:45", tz="Europe/Zurich"),
+            ]
+        ),
+    )
+
+    # when-then
+    with pytest.raises(ValueError):
+        df = DataLoader.enforce_data_quality(df)
+
+
+def test_enforce_data_quality():
+    """Check that a df with no data quality issues goes through without changes."""
+
+    # Given a df of the expected format
+    df = pd.DataFrame(
+        {
+            "Forecasted Load": [7890.0, np.nan, np.nan],
+            "Actual Load": [np.nan, 7890.0, np.nan],
+        },
+        index=pd.DatetimeIndex(
+            [
+                pd.Timestamp("20240101 23:45", tz="Europe/Zurich"),
+                pd.Timestamp("20240201 23:45", tz="Europe/Zurich"),
+                pd.Timestamp("20240301 23:45", tz="Europe/Zurich"),
+            ]
+        ),
+    )
+
+    # when
+    enforced_data_quality_df = DataLoader.enforce_data_quality(df)
+
+    # then
+    assert enforced_data_quality_df.equals(df)

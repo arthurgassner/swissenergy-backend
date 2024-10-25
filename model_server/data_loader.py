@@ -160,14 +160,14 @@ class DataLoader:
         if len(df.columns) != 2:
             logger.error(f"df should only have 2 columns, but has {len(df.columns)}")
             raise ValueError
-        if df.columns[0] == "Forecasted Load" and df.columns[1] == "Actual Load":
+        if any([df.columns[0] != "Forecasted Load", df.columns[1] != "Actual Load"]):
             logger.error(
                 f"df.columns should be ['Forecasted Load', 'Actual Load'], but is {df.columns}"
             )
             raise ValueError
-        if (df.dtypes == "float64").all():
+        if (df.dtypes != "float64").any():
             logger.error(
-                f"df.dtypes should be ['float64', 'float64'], but are {df.dtypes.to_list()}"
+                f"df.dtypes should be [dtype('float64'), dtype('float64')], but are {df.dtypes.to_list()}"
             )
             raise ValueError
 
