@@ -114,6 +114,31 @@ def test__query_load_and_forecast__specitic_ts():
     assert fetched_df.index.dtype == "datetime64[ns, Europe/Zurich]"  # correct timezone
 
 
+def test_enforce_data_quality():
+    """Check that a df with no data quality issues goes through without changes."""
+
+    # Given a df of the expected format
+    df = pd.DataFrame(
+        {
+            "Forecasted Load": [7890.0, np.nan, np.nan],
+            "Actual Load": [np.nan, 7890.0, np.nan],
+        },
+        index=pd.DatetimeIndex(
+            [
+                pd.Timestamp("20240101 23:45", tz="Europe/Zurich"),
+                pd.Timestamp("20240201 23:45", tz="Europe/Zurich"),
+                pd.Timestamp("20240301 23:45", tz="Europe/Zurich"),
+            ]
+        ),
+    )
+
+    # when
+    enforced_data_quality_df = DataLoader.enforce_data_quality(df)
+
+    # then
+    assert enforced_data_quality_df.equals(df)
+
+
 def test_enforce_data_quality__index_type():
     """Check that if not isinstance(df.index, pd.DatetimeIndex), a ValueError is raised."""
 
@@ -230,8 +255,8 @@ def test_enforce_data_quality__dtypes():
         df = DataLoader.enforce_data_quality(df)
 
 
-def test_enforce_data_quality():
-    """Check that a df with no data quality issues goes through without changes."""
+def test_enforce_data_quality__index_is_not_monotonic_increasing():
+    """Check that a df with an index that is not monotonic increasing gets sorted."""
 
     # Given a df of the expected format
     df = pd.DataFrame(
@@ -242,6 +267,35 @@ def test_enforce_data_quality():
         index=pd.DatetimeIndex(
             [
                 pd.Timestamp("20240101 23:45", tz="Europe/Zurich"),
+                pd.Timestamp("20240301 23:45", tz="Europe/Zurich"),
+                pd.Timestamp("20240201 23:45", tz="Europe/Zurich"),
+            ]
+        ),
+    )
+
+    # when
+    index_monotic_increasing_df = DataLoader.enforce_data_quality(df)
+
+    # then
+    assert index_monotic_increasing_df.index.is_monotonic_increasing
+    # reorder the rows, so that index is monotonic increasing
+    expected_df = df.iloc[[0, 2, 1]]
+    assert expected_df.equals(index_monotic_increasing_df)
+
+
+def test_enforce_data_quality__index_is_not_unique():
+    """Check that a df with an index that is not unique gets aggregated."""
+
+    # Given a df of the expected format
+    df = pd.DataFrame(
+        {
+            "Forecasted Load": [100.0, np.nan, 200.0, np.nan],
+            "Actual Load": [np.nan, 200.0, 300.0, np.nan],
+        },
+        index=pd.DatetimeIndex(
+            [
+                pd.Timestamp("20240101 23:45", tz="Europe/Zurich"),
+                pd.Timestamp("20240201 23:45", tz="Europe/Zurich"),
                 pd.Timestamp("20240201 23:45", tz="Europe/Zurich"),
                 pd.Timestamp("20240301 23:45", tz="Europe/Zurich"),
             ]
@@ -249,7 +303,18 @@ def test_enforce_data_quality():
     )
 
     # when
-    enforced_data_quality_df = DataLoader.enforce_data_quality(df)
+    index_unique_increasing_df = DataLoader.enforce_data_quality(df)
 
     # then
-    assert enforced_data_quality_df.equals(df)
+    assert index_unique_increasing_df.index.is_unique
+    assert index_unique_increasing_df.index.is_monotonic_increasing
+    assert len(index_unique_increasing_df) == df.index.nunique()
+    np.testing.assert_array_equal(
+        index_unique_increasing_df.iloc[0], [100.0, np.nan]  # 1st row is unchanged
+    )
+    np.testing.assert_array_equal(
+        index_unique_increasing_df.iloc[1], [200.0, 250.0]  # 2nd row is median
+    )
+    np.testing.assert_array_equal(
+        index_unique_increasing_df.iloc[2], [np.nan, np.nan]  # 3rd row is unchanged
+    )
