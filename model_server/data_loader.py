@@ -186,7 +186,7 @@ class DataLoader:
         )
 
         # Enfore data quality
-        df = DataLoader.enforce_data_quality(df)
+        fetched_df = DataLoader.enforce_data_quality(fetched_df)
 
         # Dump to output df
         # Ensure the folderpath exists
