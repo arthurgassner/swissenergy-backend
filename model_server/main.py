@@ -65,28 +65,18 @@ def update_forecast(entsoe_api_key: str):
 
     # [bronze -> silver] Data cleaning
     logger.info("Start cleaning the downloaded data...")
-
     DataCleaner.clean(
         df=pd.read_pickle(BRONZE_DF_FILEPATH),
         out_df_filepath=SILVER_DF_FILEPATH,
     )
-
     logger.info("Data cleaned.")
-
-    # [silver -> gold] Extract features
-    logger.info("Start extracting features...")
-    FeatureExtractor.extract_features(
-        df=pd.read_pickle(SILVER_DF_FILEPATH),
-        out_df_filepath=GOLD_DF_FILEPATH,
-    )
-    logger.info("Features extracted.")
 
     # Measure the performance of the official model
     logger.info("Start computing the official model's MAPE")
     mape_df = PerformanceMeasurer.mape(
         y_true_col="Actual Load",
         y_pred_col="Forecasted Load",
-        data=pd.read_pickle(SILVER_DF_FILEPATH),
+        data=pd.read_pickle(BRONZE_DF_FILEPATH),
         timedeltas=[
             timedelta(hours=1),
             timedelta(hours=24),
@@ -103,6 +93,14 @@ def update_forecast(entsoe_api_key: str):
     joblib.dump(mape, ENTSOE_MAPE_FILEPATH)
     logger.info(f"ENTSO-E MAPE: {mape}")
     logger.info("Official model's MAPE computed")
+
+    # [silver -> gold] Extract features
+    logger.info("Start extracting features...")
+    FeatureExtractor.extract_features(
+        df=pd.read_pickle(SILVER_DF_FILEPATH),
+        out_df_filepath=GOLD_DF_FILEPATH,
+    )
+    logger.info("Features extracted.")
 
     # Walk-forward validate the model
     logger.info("Start walk-forward validation of the model...")
