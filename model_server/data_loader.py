@@ -111,68 +111,6 @@ class DataLoader:
 
         return pd.concat(fetched_dfs)
 
-    @staticmethod
-    def enforce_data_quality(df: pd.DataFrame) -> None:
-        """Enforce the data quality of df -- as we expect it to be when coming straight from the ENTSO-E API.
-
-        If a poor data quality is detected, recover if possible, else throw a ValueError.
-
-        Args:
-            df (pd.DataFrame): Dataframe fresh from the ENTSO-E API.
-
-        Raises:
-            ValueError: If not isinstance(df.index, pd.DatetimeIndex)
-            ValueError: If df.index.dtype != "datetime64[ns, Europe/Zurich]"
-            ValueError: If len(df.columns) != 2
-            ValueError: If df.columns != ["Forecasted Load", "Actual Load"]
-            ValueError: If df.dtypes.to_list() != ['float64', 'float64']
-
-        Returns:
-            pd.DataFrame: Input dataframe with data quality enforced.
-        """
-
-        # Enforce the data quality of the index
-        # errors
-        if not isinstance(df.index, pd.DatetimeIndex):
-            logger.error(
-                f"df.index should be an instance of pd.DatetimeIndex, but is: {type(df.index)}"
-            )
-            raise ValueError
-        if df.index.dtype != "datetime64[ns, Europe/Zurich]":
-            logger.error(
-                f"df.index.dtype should be datetime64[ns, Europe/Zurich] but is: {df.index.dtype}"
-            )
-            raise ValueError
-
-        # warnings
-        if not df.index.is_unique:
-            logger.warning(
-                f"df.index should be unique, but has {(df.index.value_counts() > 1).sum()} duplicated index. Forcing index's uniqueness by aggregating duplicated index with median..."
-            )
-            df = df.groupby(df.index).median()
-        if not df.index.is_monotonic_increasing:
-            logger.warning(
-                "df.index should be monotonic increasing, but isn't. Forcing index's monotonic increase by sorting the index..."
-            )
-            df = df.sort_index()
-
-        # Enforce the data quality of the columns
-        if len(df.columns) != 2:
-            logger.error(f"df should only have 2 columns, but has {len(df.columns)}")
-            raise ValueError
-        if any([df.columns[0] != "Forecasted Load", df.columns[1] != "Actual Load"]):
-            logger.error(
-                f"df.columns should be ['Forecasted Load', 'Actual Load'], but is {df.columns}"
-            )
-            raise ValueError
-        if (df.dtypes != "float64").any():
-            logger.error(
-                f"df.dtypes should be [dtype('float64'), dtype('float64')], but are {df.dtypes.to_list()}"
-            )
-            raise ValueError
-
-        return df
-
     def fetch_df(self, out_df_filepath: str) -> None:
         """Fetch the forecast/load data from the ENTSO-E API, and dump it to disk.
 
@@ -184,9 +122,6 @@ class DataLoader:
         fetched_df = self._query_load_and_forecast(
             start_ts=pd.Timestamp("2014-01-01 00:00", tz="Europe/Zurich")
         )
-
-        # Enfore data quality
-        fetched_df = DataLoader.enforce_data_quality(fetched_df)
 
         # Dump to output df
         # Ensure the folderpath exists
