@@ -110,7 +110,7 @@ class DataCleaner:
 
         # Only keep rows below this threshold, as it seems the ENTSO-E sometimes logs extreme values
         upper_threshold = df["Actual Load"].quantile(q=0.999)
-        mask = df["Actual Load"] < upper_threshold
+        mask = (df["Actual Load"] < upper_threshold) | df.isna()
         df = df[mask]
 
         return df
