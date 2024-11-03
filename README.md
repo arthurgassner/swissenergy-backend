@@ -1,7 +1,6 @@
 # swissenergy-backend
 
-> The project is better understood through its
-> <p align="center">🚀 <a href="https://swissenergy.arthurgassner.ch"><strong>live dashboard & detailed write-up</strong></a> 🚀</p>
+<p align="center">🚀 <a href="https://swissenergy.arthurgassner.ch"><strong>live dashboard & detailed write-up</strong></a> 🚀</p>
 
 <br>
 
@@ -20,6 +19,9 @@ Inspired by the [SFOE's energy consumption dashboard](https://www.energiedashboa
 
 > [!IMPORTANT]
 > I _heavily_ encourage you to check out the 🚀 [**write-up**](https://swissenergy.arthurgassner.ch) 🚀 to make sense of this repo, as it goes through each stage methodically.
+
+> [!NOTE]  
+> The code for the frontend can be found [here](https://github.com/arthurgassner/swissenergy-frontend).
 
 ## Repo structure
 
