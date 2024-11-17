@@ -28,17 +28,17 @@ Inspired by the [SFOE's energy consumption dashboard](https://www.energiedashboa
 The repo is structured as follows
 
 ```bash 
-├── img 
-├── model_server # ML backend
-├── nb-dev # Notebooks created during the EDA/Modelling phase
-├── tests # pytests
-├── viz # Visualization built for the writeup
+├── img/ 
+├── model_server/ # ML backend
+├── nb-dev/ # Notebooks created during the EDA/Modelling phase
+├── tests/ # pytests
+├── viz/ # Visualization built for the writeup
 ├── .gitignore 
 ├── .pre-commit-config.yaml 
 ├── Dockerfile
 ├── README.md
 ├── data_checks.ipynb # Used to manually check our data
-├── docker-compose.yml 
+├── compose.yml 
 ├── requirements.txt
 └── sanity_checks.ipynb # Used to manually check our some inputs
 ```
