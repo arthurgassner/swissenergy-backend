@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 # Setup logging
@@ -53,6 +54,11 @@ class DataCleaner:
         """Enforce the data quality of df.
 
         If a poor data quality is detected, recover if possible, else throw a ValueError.
+
+        The enforcing of the data quality is done by, sequentially:
+        1. Groupby median on the index, if the index is not unique.
+        2. Sorting by index in ascending order, if the index is not monotonic increasing.
+        3. Only keep the rows whose Actual Value is below the 99.9 percentile.
 
         Args:
             df (pd.DataFrame): Dataframe fresh from the ENTSO-E API.
@@ -110,7 +116,11 @@ class DataCleaner:
 
         # Only keep rows below this threshold, as it seems the ENTSO-E sometimes logs extreme values
         upper_threshold = df["Actual Load"].quantile(q=0.999)
-        mask = (df["Actual Load"] < upper_threshold) | df["Actual Load"].isna()
+        mask = (df["Actual Load"] <= upper_threshold) | df["Actual Load"].isna()
+        if mask.sum() > 0:
+            logger.warning(
+                f"Dropping {len(df) - mask.sum()}/{len(df)} rows ({100 * (len(df) - mask.sum()) / len(df):.2f}%) to remove extreme values (>{upper_threshold})."
+            )
         df = df[mask]
 
         return df
