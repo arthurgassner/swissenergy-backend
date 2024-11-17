@@ -6,7 +6,7 @@
 
 <br>
 
-![](img/dashboard.gif)
+<p align="center"><img src="img/dashboard.gif" width="100%"><p>
 
 This repository contains the ML backend powering an **energy consumption prediction dashboard**.
 
