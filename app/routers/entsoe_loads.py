@@ -3,13 +3,16 @@ from fastapi import APIRouter
 from loguru import logger
 
 from app.core.config import settings
-from app.schemas.EntsoeLoadsLatest import EntsoeLoadsLatestRequest
+from app.schemas.EntsoeLoadsLatest import (
+    EntsoeLoadsLatestRequest,
+    EntsoeLoadsLatestResponse,
+)
 
 router = APIRouter()
 
 
 @router.post("/entsoe-loads/latest")
-async def post_entsoe_loads_latest(request: EntsoeLoadsLatestRequest):  # TODO -> EntsoeLoadsLatestResponse
+async def post_entsoe_loads_latest(request: EntsoeLoadsLatestRequest) -> EntsoeLoadsLatestResponse:
     logger.info(f"Received POST /entsoe-loads/latest : {request}")
 
     # Load past loads
@@ -22,17 +25,17 @@ async def post_entsoe_loads_latest(request: EntsoeLoadsLatestRequest):  # TODO -
     # Only keep the data till
     silver_df = silver_df[silver_df.index > cutoff_ts]
 
-    entsoe_loads = {
-        "timestamps": silver_df.index.tolist(),
-        "24h_later_load": silver_df["24h_later_load"].fillna("NaN").tolist(),
-        "24h_later_forecast": silver_df["24h_later_forecast"].fillna("NaN").tolist(),
-    }
+    response = EntsoeLoadsLatestResponse(
+        timestamps=silver_df.index.tolist(),
+        day_later_loads=silver_df["24h_later_load"].astype(float).fillna("NaN").tolist(),
+        day_later_forecasts=silver_df["24h_later_forecast"].astype(float).fillna("NaN").tolist(),
+    )
 
-    if len(entsoe_loads["timestamps"]):
-        logger.info(f"Ready to send back: {len(entsoe_loads['timestamps'])} timestamps between {cutoff_ts} -> {end_ts}")
+    if len(response.timestamps):
+        logger.info(f"Ready to send back: {len(response.timestamps)} timestamps between {cutoff_ts} -> {end_ts}")
     else:
         logger.warning(
-            f"Ready to send empty dict: {len(entsoe_loads['timestamps'])} timestamps between {cutoff_ts} -> {end_ts}"
+            f"Ready to send empty dict: {len(response.timestamps)} timestamps between {cutoff_ts} -> {end_ts}"
         )
 
-    return entsoe_loads
+    return response
