@@ -5,27 +5,20 @@ from random import sample
 
 import joblib
 import pandas as pd
-from dotenv import load_dotenv
+from entsoe import EntsoePandasClient
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 from pydantic import BaseModel
 
-from .data_cleaner import DataCleaner
-from .data_loader import DataLoader
-from .feature_extractor import FeatureExtractor
-from .model import Model
-from .performance_measurer import PerformanceMeasurer
-
-BRONZE_DF_FILEPATH = "data/bronze/df.pickle"
-SILVER_DF_FILEPATH = "data/silver/df.pickle"
-GOLD_DF_FILEPATH = "data/gold/df.pickle"
-WALKFORWARD_YHAT_FILEPATH = "data/walkforward_yhat.pickle"
-YHAT_FILEPATH = "data/yhat.pickle"
-OUR_MODEL_MAPE_FILEPATH = "data/our_model_mape.joblib"
-ENTSOE_MAPE_FILEPATH = "data/entsoe_mape.joblib"
-
-load_dotenv()
+from app.core.config import settings
+from app.core.model import Model
+from app.services import (
+    data_cleaning_service,
+    data_loading_service,
+    feature_extraction_service,
+    performance_measure_service,
+)
 
 
 class DeltaTime(BaseModel):
@@ -50,24 +43,24 @@ def update_forecast(entsoe_api_key: str):
 
     # Data ingestion -> bronze data
     logger.info("Start downloading data from the ENTSO-E service...")
-    data_loader = DataLoader(entsoe_api_key=entsoe_api_key)
-    data_loader.fetch_df(out_df_filepath=BRONZE_DF_FILEPATH)
+    entsoe_client = EntsoePandasClient(api_key=settings.ENTSOE_API_KEY)
+    data_loading_service.fetch_df(entsoe_client, settings.BRONZE_DF_FILEPATH)
     logger.info("Data downloaded")
 
     # [bronze -> silver] Data cleaning
     logger.info("Start cleaning the downloaded data...")
-    DataCleaner.clean(
-        df=pd.read_pickle(BRONZE_DF_FILEPATH),
-        out_df_filepath=SILVER_DF_FILEPATH,
+    data_cleaning_service.clean(
+        df=pd.read_pickle(settings.BRONZE_DF_FILEPATH),
+        out_df_filepath=settings.SILVER_DF_FILEPATH,
     )
     logger.info("Data cleaned.")
 
     # Measure the performance of the official model
     logger.info("Start computing the official model's MAPE")
-    mape_df = PerformanceMeasurer.mape(
+    mape_df = performance_measure_service.compute_mape(
         y_true_col="Actual Load",
         y_pred_col="Forecasted Load",
-        data=pd.read_pickle(BRONZE_DF_FILEPATH),
+        data=pd.read_pickle(settings.BRONZE_DF_FILEPATH),
         timedeltas=[
             timedelta(hours=1),
             timedelta(hours=24),
@@ -81,22 +74,22 @@ def update_forecast(entsoe_api_key: str):
         "7d": mape_df.mape.iloc[2],
         "4w": mape_df.mape.iloc[3],
     }
-    joblib.dump(mape, ENTSOE_MAPE_FILEPATH)
+    joblib.dump(mape, settings.ENTSOE_MAPE_FILEPATH)
     logger.info(f"ENTSO-E MAPE: {mape}")
     logger.info("Official model's MAPE computed")
 
     # [silver -> gold] Extract features
     logger.info("Start extracting features...")
-    FeatureExtractor.extract_features(
-        df=pd.read_pickle(SILVER_DF_FILEPATH),
-        out_df_filepath=GOLD_DF_FILEPATH,
+    feature_extraction_service.extract_features(
+        df=pd.read_pickle(settings.SILVER_DF_FILEPATH),
+        out_df_filepath=settings.GOLD_DF_FILEPATH,
     )
     logger.info("Features extracted.")
 
     # Walk-forward validate the model
     logger.info("Start walk-forward validation of the model...")
     model = Model(n_estimators=int(os.getenv("MODEL_N_ESTIMATORS")))
-    latest_load_ts = pd.read_pickle(GOLD_DF_FILEPATH).dropna(subset=("24h_later_load")).index.max()
+    latest_load_ts = pd.read_pickle(settings.GOLD_DF_FILEPATH).dropna(subset=("24h_later_load")).index.max()
 
     # Figure out ranges to timestamps to test on
     past_24h_ts = latest_load_ts - timedelta(hours=23)
@@ -110,12 +103,12 @@ def update_forecast(entsoe_api_key: str):
     # Estimate the MAPE off 10% (17 and 50) of the points for the past week/month
     # To avoid heavy computations
     walkforward_yhat = model.train_predict(
-        Xy=pd.read_pickle(GOLD_DF_FILEPATH),
+        Xy=pd.read_pickle(settings.GOLD_DF_FILEPATH),
         query_timestamps=past_24h_timestamps + sample(past_1w_timestamps, 17) + sample(past_4w_timestamps, 50),
-        out_yhat_filepath=WALKFORWARD_YHAT_FILEPATH,
+        out_yhat_filepath=settings.WALKFORWARD_YHAT_FILEPATH,
     )
-    walkforward_y = pd.read_pickle(GOLD_DF_FILEPATH)[["24h_later_load"]]
-    mape_df = PerformanceMeasurer.mape(
+    walkforward_y = pd.read_pickle(settings.GOLD_DF_FILEPATH)[["24h_later_load"]]
+    mape_df = performance_measure_service.compute_mape(
         y_true_col="24h_later_load",
         y_pred_col="predicted_24h_later_load",
         data=walkforward_yhat.join(walkforward_y, how="left"),
@@ -132,16 +125,16 @@ def update_forecast(entsoe_api_key: str):
         "7d": mape_df.mape.iloc[2],
         "4w": mape_df.mape.iloc[3],
     }
-    joblib.dump(mape, OUR_MODEL_MAPE_FILEPATH)
+    joblib.dump(mape, settings.OUR_MODEL_MAPE_FILEPATH)
     logger.info(f"MAPE: {mape}")
     logger.info("Walk-forward validation done.")
 
     # Train-predict
     logger.info("Start train-predicting the model...")
     model.train_predict(
-        Xy=pd.read_pickle(GOLD_DF_FILEPATH),
+        Xy=pd.read_pickle(settings.GOLD_DF_FILEPATH),
         query_timestamps=[pd.Timestamp(latest_load_ts) + timedelta(hours=i) for i in range(1, 25)],
-        out_yhat_filepath=YHAT_FILEPATH,
+        out_yhat_filepath=settings.YHAT_FILEPATH,
     )
     logger.info("Train-predict done.")
 
@@ -164,7 +157,7 @@ async def get_latest_forecast():
     logger.info("Received GET /latest-forecast")
 
     # Load latest forecast
-    yhat_filepath = Path(YHAT_FILEPATH)
+    yhat_filepath = Path(settings.YHAT_FILEPATH)
     timestamps, predicted_24h_later_load = [], []
     if yhat_filepath.is_file():
         yhat = pd.read_pickle(yhat_filepath)
@@ -189,7 +182,7 @@ async def get_entsoe_loads(delta_time: DeltaTime):
     logger.info(f"Received POST /entsoe-loads : {delta_time}")
 
     # Load past loads
-    silver_df = pd.read_pickle(SILVER_DF_FILEPATH)
+    silver_df = pd.read_pickle(settings.SILVER_DF_FILEPATH)
 
     # Figure out till when the records should be sent
     end_ts = silver_df.index.max()
@@ -218,7 +211,7 @@ async def get_entsoe_loads(delta_time: DeltaTime):
 async def get_latest_forecast_ts():
     logger.info(f"Received GET /latest-forecast-ts")
 
-    yhat_filepath = Path(YHAT_FILEPATH)
+    yhat_filepath = Path(settings.YHAT_FILEPATH)
     if not yhat_filepath.is_file():
         logger.warning("No forecast has been created. Sending back -1")
         return {"latest_forecast_ts": -1}
@@ -235,13 +228,13 @@ async def get_latest_mape():
     logger.info(f"Received GET /latest-mape")
 
     # Figure out the ENTSO-E MAPE
-    entsoe_filepath = Path(ENTSOE_MAPE_FILEPATH)
+    entsoe_filepath = Path(settings.ENTSOE_MAPE_FILEPATH)
     entsoe_mape = {}
     if entsoe_filepath.is_file():
         entsoe_mape = joblib.load(entsoe_filepath)
 
     # Figure out our model's MAPE
-    our_model_filepath = Path(OUR_MODEL_MAPE_FILEPATH)
+    our_model_filepath = Path(settings.OUR_MODEL_MAPE_FILEPATH)
     our_model_mape = {}
     if our_model_filepath.is_file():
         our_model_mape = joblib.load(our_model_filepath)
