@@ -1,4 +1,6 @@
-from fastapi import FastAPI
+import time
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
@@ -20,9 +22,15 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def middleware(request: Request, call_next):
+    logger.info(f"Received {request.method} on {request.url} from {request.client.host}:{request.client.port}")
+    response = await call_next(request)
+    return response
+
+
 @app.get("/")
 async def get_root():
-    logger.info(f"Received GET /")
     return {"message": "Welcome to the swissenergy-backend!"}
 
 

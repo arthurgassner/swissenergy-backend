@@ -13,8 +13,6 @@ router = APIRouter()
 
 @router.post("/entsoe-loads/latest")
 async def post_entsoe_loads_latest(request: EntsoeLoadsLatestRequest) -> EntsoeLoadsLatestResponse:
-    logger.info(f"Received POST /entsoe-loads/latest : {request}")
-
     # Load past loads
     silver_df = pd.read_pickle(settings.SILVER_DF_FILEPATH)
 

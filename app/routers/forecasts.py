@@ -121,15 +121,12 @@ def update_forecast():
 
 @router.get("/forecasts/update")
 async def get_forecasts_update(background_tasks: BackgroundTasks):
-    logger.info(f"Received GET /forecasts/update")
     background_tasks.add_task(update_forecast)
     return {"message": "Forecast updating task started..."}
 
 
 @router.get("/forecasts/fetch/latest/predictions")
 async def get_forecasts_fetch_latest_predictions():
-    logger.info("Received GET /forecasts/fetch/latest/predictions")
-
     # Load latest forecast
     timestamps, predicted_24h_later_load = [], []
     if settings.YHAT_FILEPATH.is_file():
@@ -151,8 +148,6 @@ async def get_forecasts_fetch_latest_predictions():
 
 @router.get("/forecasts/fetch/latest/ts")
 async def get_fetch_latest_forecast_ts():
-    logger.info("Received GET /forecasts/fetch/latest/ts")
-
     if not settings.YHAT_FILEPATH.is_file():
         logger.warning("No forecast has been created. Sending back -1")
         return {"latest_forecast_ts": -1}
@@ -166,8 +161,6 @@ async def get_fetch_latest_forecast_ts():
 
 @router.get("/forecasts/fetch/latest/mape")
 async def get_fetch_latest_mape():
-    logger.info("Received GET /forecasts/fetch/latest/mape")
-
     # Figure out the ENTSO-E MAPE
     entsoe_mape = {}
     if settings.ENTSOE_MAPE_FILEPATH.is_file():
