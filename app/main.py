@@ -10,7 +10,7 @@ from app.routers.entsoe_loads import router as entsoe_loads_router
 from app.routers.forecasts import router as forecasts_loads_router
 
 logger.remove()
-logger.add(sys.stderr, colorize=True)
+logger.add(sys.stderr, colorize=True)  # Force colorization, as Docker strips them otherwise
 logger.add(settings.LOGS_FILEPATH, level="INFO", rotation="10 MB", retention="365 days")
 
 app = FastAPI(title="[Swiss Energy Forcasting] ML Backend")
