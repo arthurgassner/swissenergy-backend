@@ -2,13 +2,13 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
+from loguru import logger
 from pydantic_settings import BaseSettings
 
 load_dotenv()
 
 
 class Settings(BaseSettings):
-    ENTSOE_API_KEY: str = os.getenv("ENTSOE_API_KEY")  # TODO implement error if missing
     ROOT_FOLDERPATH: Path = Path(__file__).resolve().parent.parent.parent
     DATA_FOLDERPATH: Path = ROOT_FOLDERPATH / "data"
     BRONZE_DF_FILEPATH: Path = DATA_FOLDERPATH / "bronze/df.pickle"
@@ -19,6 +19,16 @@ class Settings(BaseSettings):
     OUR_MODEL_MAPE_FILEPATH: Path = DATA_FOLDERPATH / "our_model_mape.joblib"
     ENTSOE_MAPE_FILEPATH: Path = DATA_FOLDERPATH / "entsoe_mape.joblib"
     LOGS_FILEPATH: Path = DATA_FOLDERPATH / "logs/.log"
+
+    @property
+    def ENTSOE_API_KEY(self) -> str:
+        entsoe_api_key = os.getenv("ENTSOE_API_KEY")
+
+        if entsoe_api_key is None:
+            logger.error("Missing ENTSOE_API_KEY. Could not be found in the env variables.")
+            raise ValueError
+
+        return entsoe_api_key
 
 
 settings = Settings()
