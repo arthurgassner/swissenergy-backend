@@ -59,8 +59,8 @@ class Model:
         self,
         Xy: pd.DataFrame,
         query_timestamps: List[pd.Timestamp],
-        out_yhat_filepath: Optional[str] = None,
-        already_computed_yhat_filepath: Optional[str] = None,
+        out_yhat_filepath: Optional[Path] = None,
+        already_computed_yhat_filepath: Optional[Path] = None,
     ) -> pd.Series:
         """Train one model per query_ts in `query_timestamps` not already-present in `already_computed_yhat_filepath`.
         Each model will only be training on the features in Xy available strictly BEFORE said query_ts.
@@ -69,8 +69,8 @@ class Model:
         Args:
             Xy (pd.DataFrame): Dataframe containing the (features, target), where the target is '24h_later_load'
             query_timestamps (List[pd.Timestamp]): Timestamps whose inference we are interested in
-            out_yhat_filepath (str, optional): Where to save the predictions.
-            already_computed_yhat_filepath (str, optional): Filepath of already-computed yhats.
+            out_yhat_filepath (Path, optional): Where to save the predictions.
+            already_computed_yhat_filepath (Path, optional): Filepath of already-computed yhats.
                                                             If given, the timestamps whose yhat exists will not be recomputed.
 
         Returns:
@@ -81,10 +81,9 @@ class Model:
         # Figure out which timestamps already have a prediction
         already_computed_yhat = None
         already_computed_timestamps = set([])
-        if already_computed_yhat_filepath:
-            if Path(already_computed_yhat_filepath).is_file():
-                already_computed_yhat = pd.read_pickle(already_computed_yhat_filepath)
-                already_computed_timestamps = set(already_computed_yhat.index)
+        if already_computed_yhat_filepath and already_computed_yhat_filepath.is_file():
+            already_computed_yhat = pd.read_pickle(already_computed_yhat_filepath)
+            already_computed_timestamps = set(already_computed_yhat.index)
 
         predicted_values = []
         for query_ts in tqdm(query_timestamps):
@@ -99,7 +98,7 @@ class Model:
         )
 
         if out_yhat_filepath:
-            Path(out_yhat_filepath).parent.mkdir(parents=True, exist_ok=True)
+            out_yhat_filepath.parent.mkdir(parents=True, exist_ok=True)
             yhat.to_pickle(out_yhat_filepath)
 
         return yhat

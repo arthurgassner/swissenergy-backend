@@ -84,12 +84,12 @@ def _query_load_and_forecast(
     return pd.concat(fetched_dfs)
 
 
-def fetch_df(entsoe_client: EntsoePandasClient, out_df_filepath: str) -> None:
+def fetch_df(entsoe_client: EntsoePandasClient, out_df_filepath: Path) -> None:
     """Fetch the forecast/load data from the ENTSO-E API, and dump it to disk.
 
     Args:
         entsoe_client (EntsoePandasClient): ENTSO-E client
-        out_df_filepath (str): Filepath where the dataframe (.pickle) should be stored.
+        out_df_filepath (Path): Filepath where the dataframe (.pickle) should be stored.
     """
 
     # Fetch loads and forecasts
@@ -97,5 +97,5 @@ def fetch_df(entsoe_client: EntsoePandasClient, out_df_filepath: str) -> None:
 
     # Dump to output df
     # Ensure the folderpath exists
-    Path(out_df_filepath).parent.mkdir(parents=True, exist_ok=True)
+    out_df_filepath.parent.mkdir(parents=True, exist_ok=True)
     fetched_df.to_pickle(out_df_filepath)

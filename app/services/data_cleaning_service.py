@@ -120,12 +120,12 @@ def _force_1h_frequency(df: pd.DataFrame) -> pd.DataFrame:
     return df.resample(rule=pd.Timedelta(1, "h")).min()
 
 
-def clean(df: pd.DataFrame, out_df_filepath: str) -> None:
+def clean(df: pd.DataFrame, out_df_filepath: Path) -> None:
     """Clean the dataframe df and dump the cleaned version to disk.
 
     Args:
         df (pd.DataFrame): Dirty dataframe
-        out_df_filepath (str): Filesystem location where the cleaned dataframe will be dumped.
+        out_df_filepath (Path): Filesystem location where the cleaned dataframe will be dumped.
     """
 
     # Enfore data quality
@@ -139,5 +139,5 @@ def clean(df: pd.DataFrame, out_df_filepath: str) -> None:
     df = _force_1h_frequency(df=df)
 
     # Dump to output dataframe filepath
-    Path(out_df_filepath).parent.mkdir(parents=True, exist_ok=True)  # Ensure the folderpath exists
+    out_df_filepath.parent.mkdir(parents=True, exist_ok=True)  # Ensure the folderpath exists
     df.to_pickle(out_df_filepath)

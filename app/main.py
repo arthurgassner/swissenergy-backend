@@ -157,10 +157,9 @@ async def get_latest_forecast():
     logger.info("Received GET /latest-forecast")
 
     # Load latest forecast
-    yhat_filepath = Path(settings.YHAT_FILEPATH)
     timestamps, predicted_24h_later_load = [], []
-    if yhat_filepath.is_file():
-        yhat = pd.read_pickle(yhat_filepath)
+    if settings.YHAT_FILEPATH.is_file():
+        yhat = pd.read_pickle(settings.YHAT_FILEPATH)
         timestamps = yhat.index.tolist()
         predicted_24h_later_load = yhat["predicted_24h_later_load"].fillna("NaN").tolist()
 
@@ -211,14 +210,13 @@ async def get_entsoe_loads(delta_time: DeltaTime):
 async def get_latest_forecast_ts():
     logger.info(f"Received GET /latest-forecast-ts")
 
-    yhat_filepath = Path(settings.YHAT_FILEPATH)
-    if not yhat_filepath.is_file():
+    if not settings.YHAT_FILEPATH.is_file():
         logger.warning("No forecast has been created. Sending back -1")
         return {"latest_forecast_ts": -1}
 
-    creation_ts = os.path.getctime(yhat_filepath)  # since epoch
+    creation_ts = os.path.getctime(settings.YHAT_FILEPATH)  # since epoch
     logger.info(
-        f"Ready to send back the creation timestamp of {yhat_filepath.as_posix()}: {creation_ts} ({datetime.fromtimestamp(creation_ts)})"
+        f"Ready to send back the creation timestamp of {settings.YHAT_FILEPATH}: {creation_ts} ({datetime.fromtimestamp(creation_ts)})"
     )
     return {"latest_forecast_ts": creation_ts}
 
