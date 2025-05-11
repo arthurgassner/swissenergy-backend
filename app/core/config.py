@@ -31,14 +31,14 @@ class Settings(BaseSettings):
         return entsoe_api_key
 
     @property
-    def MODEL_N_ESTIMATORS(self) -> str:
+    def MODEL_N_ESTIMATORS(self) -> int:
         model_n_estimators = os.getenv("MODEL_N_ESTIMATORS")
 
         if model_n_estimators is None:
             logger.error("Missing MODEL_N_ESTIMATORS. Could not be found in the env variables.")
             raise ValueError
 
-        return model_n_estimators
+        return int(model_n_estimators)
 
 
 settings = Settings()
