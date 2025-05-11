@@ -1,10 +1,4 @@
-import os
-from pathlib import Path
-from random import sample
-
-import joblib
-import pandas as pd
-from fastapi import BackgroundTasks, FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
