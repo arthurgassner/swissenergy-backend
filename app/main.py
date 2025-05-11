@@ -13,6 +13,7 @@ from pydantic import BaseModel
 
 from app.core.config import settings
 from app.core.model import Model
+from app.schemas.EntsoeLoads import EntsoeLoadsRequest
 from app.services import (
     data_cleaning_service,
     data_loading_service,
@@ -21,13 +22,6 @@ from app.services import (
 )
 
 logger.add(settings.LOGS_FILEPATH, level="INFO", rotation="10 MB", retention="365 days")
-
-
-# TODO move to appropriate schema
-class DeltaTime(BaseModel):
-    n_days: int = 0
-    n_hours: int = 1
-
 
 app = FastAPI(title="[Swiss Energy Forcasting] ML Backend")
 
@@ -179,16 +173,15 @@ async def get_latest_forecast():
 
 
 @app.post("/entsoe-loads")
-async def get_entsoe_loads(delta_time: DeltaTime):
-
-    logger.info(f"Received POST /entsoe-loads : {delta_time}")
+async def post_entsoe_loads(request: EntsoeLoadsRequest):
+    logger.info(f"Received POST /entsoe-loads : {request}")
 
     # Load past loads
     silver_df = pd.read_pickle(settings.SILVER_DF_FILEPATH)
 
     # Figure out till when the records should be sent
     end_ts = silver_df.index.max()
-    cutoff_ts = end_ts - pd.Timedelta(days=delta_time.n_days, hours=delta_time.n_hours)
+    cutoff_ts = end_ts - request.delta_time
 
     # Only keep the data till
     silver_df = silver_df[silver_df.index > cutoff_ts]
