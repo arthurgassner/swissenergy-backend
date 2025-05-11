@@ -20,7 +20,10 @@ from app.services import (
     performance_measure_service,
 )
 
+logger.add(settings.LOGS_FILEPATH, level="INFO", rotation="10 MB", retention="365 days")
 
+
+# TODO move to appropriate schema
 class DeltaTime(BaseModel):
     n_days: int = 0
     n_hours: int = 1
