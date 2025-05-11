@@ -3,16 +3,16 @@ from fastapi import APIRouter
 from loguru import logger
 
 from app.core.config import settings
-from app.schemas.entsoe_loads_latest import (
-    EntsoeLoadsLatestRequest,
-    EntsoeLoadsLatestResponse,
+from app.schemas.entsoe_loads_fetch_latest import (
+    EntsoeLoadsFetchLatestRequest,
+    EntsoeLoadsFetchLatestResponse,
 )
 
 router = APIRouter()
 
 
 @router.post("/entsoe-loads/fetch/latest")
-async def post_entsoe_loads_fetch_latest(request: EntsoeLoadsLatestRequest) -> EntsoeLoadsLatestResponse:
+async def post_entsoe_loads_fetch_latest(request: EntsoeLoadsFetchLatestRequest) -> EntsoeLoadsFetchLatestResponse:
     # Load past loads
     silver_df = pd.read_pickle(settings.SILVER_DF_FILEPATH)
 
@@ -23,7 +23,7 @@ async def post_entsoe_loads_fetch_latest(request: EntsoeLoadsLatestRequest) -> E
     # Only keep the data till
     silver_df = silver_df[silver_df.index > cutoff_ts]
 
-    response = EntsoeLoadsLatestResponse(
+    response = EntsoeLoadsFetchLatestResponse(
         timestamps=silver_df.index.tolist(),
         day_later_loads=silver_df["24h_later_load"].astype(float).fillna("NaN").tolist(),
         day_later_forecasts=silver_df["24h_later_forecast"].astype(float).fillna("NaN").tolist(),
