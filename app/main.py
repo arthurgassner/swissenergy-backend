@@ -12,7 +12,7 @@ from loguru import logger
 
 from app.core.config import settings
 from app.core.model import Model
-from app.schemas.EntsoeLoads import EntsoeLoadsRequest
+from app.schemas.EntsoeLoads import FetchEntsoeLoadsRequest
 from app.services import (
     data_cleaning_service,
     data_loading_service,
@@ -172,7 +172,7 @@ async def get_fetch_latest_forecast():
 
 
 @app.post("/fetch-entsoe-loads")
-async def post_fetch_entsoe_loads(request: EntsoeLoadsRequest):
+async def post_fetch_entsoe_loads(request: FetchEntsoeLoadsRequest):
     logger.info(f"Received POST /fetch-entsoe-loads : {request}")
 
     # Load past loads

@@ -2,7 +2,7 @@ import pandas as pd
 from pydantic import BaseModel
 
 
-class EntsoeLoadsRequest(BaseModel):
+class FetchEntsoeLoadsRequest(BaseModel):
     n_days: int = 0
     n_hours: int = 1
 
