@@ -30,11 +30,12 @@ Inspired by the [SFOE's energy consumption dashboard](https://www.energiedashboa
 The repo is structured as follows
 
 ```bash 
+├── app/ # ML backend
 ├── img/ 
-├── model_server/ # ML backend
+├── viz/ # Visualization built for the writeup
 ├── nb-dev/ # Notebooks created during the EDA/Modelling phase
 ├── tests/ # pytests
-├── viz/ # Visualization built for the writeup
+├── .python-version # pinned python version, used by uv
 ├── .gitignore 
 ├── .pre-commit-config.yaml 
 ├── Dockerfile
