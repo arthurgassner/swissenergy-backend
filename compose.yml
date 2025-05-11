@@ -15,5 +15,5 @@ services:
     
 volumes:
   swissenergy-backend-data:
-    external: true
+    external: false
     name: swissenergy-backend-data

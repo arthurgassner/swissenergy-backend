@@ -11,8 +11,8 @@ from app.schemas.entsoe_loads_latest import (
 router = APIRouter()
 
 
-@router.post("/entsoe-loads/latest")
-async def post_entsoe_loads_latest(request: EntsoeLoadsLatestRequest) -> EntsoeLoadsLatestResponse:
+@router.post("/entsoe-loads/fetch/latest")
+async def post_entsoe_loads_fetch_latest(request: EntsoeLoadsLatestRequest) -> EntsoeLoadsLatestResponse:
     # Load past loads
     silver_df = pd.read_pickle(settings.SILVER_DF_FILEPATH)
 
