@@ -67,7 +67,7 @@ class DataLoader:
         # Send each yearly-query to the ENTSO-E API
         fetched_dfs = []
         for curr_start_ts, curr_end_ts in start_end_timestamps:
-            logging.info(
+            logger.info(
                 f"Asking the ENTSO-E API for load/forecast data between {curr_start_ts} -> {curr_end_ts} ({precise_delta(curr_end_ts - curr_start_ts, minimum_unit="seconds")})"
             )
             n_retries = 0
