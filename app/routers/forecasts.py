@@ -68,7 +68,7 @@ def update_forecast():
 
     # Walk-forward validate the model
     logger.info("Start walk-forward validation of the model...")
-    model = Model(n_estimators=int(os.getenv("MODEL_N_ESTIMATORS")))
+    model = Model(n_estimators=settings.MODEL_N_ESTIMATORS)
     latest_load_ts = pd.read_pickle(settings.GOLD_DF_FILEPATH).dropna(subset=("24h_later_load")).index.max()
 
     # Figure out ranges to timestamps to test on
