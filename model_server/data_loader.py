@@ -1,4 +1,3 @@
-import logging
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -9,16 +8,7 @@ import requests
 from entsoe import EntsoePandasClient
 from entsoe.exceptions import NoMatchingDataError
 from human_readable import precise_delta
-
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-    ],
-)
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 class DataLoader:
@@ -62,9 +52,7 @@ class DataLoader:
                           Empty dataframe if no data could be found
         """
         if end_ts is None:
-            end_ts = pd.Timestamp(
-                datetime.now() + timedelta(hours=24), tz="Europe/Zurich"
-            )
+            end_ts = pd.Timestamp(datetime.now() + timedelta(hours=24), tz="Europe/Zurich")
 
         # Split up the query into yearly queries
         start_end_timestamps = []
@@ -96,9 +84,7 @@ class DataLoader:
                     fetched_df = pd.DataFrame(  # empty dataframe
                         columns=["Forecasted Load", "Actual Load"],
                         dtype=float,
-                        index=pd.DatetimeIndex(
-                            [], dtype="datetime64[ns, Europe/Zurich]"
-                        ),
+                        index=pd.DatetimeIndex([], dtype="datetime64[ns, Europe/Zurich]"),
                     )
                     break
                 except requests.ConnectionError as e:
@@ -119,9 +105,7 @@ class DataLoader:
         """
 
         # Fetch loads and forecasts
-        fetched_df = self._query_load_and_forecast(
-            start_ts=pd.Timestamp("2014-01-01 00:00", tz="Europe/Zurich")
-        )
+        fetched_df = self._query_load_and_forecast(start_ts=pd.Timestamp("2014-01-01 00:00", tz="Europe/Zurich"))
 
         # Dump to output df
         # Ensure the folderpath exists

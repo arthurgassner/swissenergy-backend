@@ -1,18 +1,8 @@
-import logging
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-    ],
-)
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 class DataCleaner:
@@ -77,14 +67,10 @@ class DataCleaner:
         # Enforce the data quality of the index
         # errors
         if not isinstance(df.index, pd.DatetimeIndex):
-            logger.error(
-                f"df.index should be an instance of pd.DatetimeIndex, but is: {type(df.index)}"
-            )
+            logger.error(f"df.index should be an instance of pd.DatetimeIndex, but is: {type(df.index)}")
             raise ValueError
         if df.index.dtype != "datetime64[ns, Europe/Zurich]":
-            logger.error(
-                f"df.index.dtype should be datetime64[ns, Europe/Zurich] but is: {df.index.dtype}"
-            )
+            logger.error(f"df.index.dtype should be datetime64[ns, Europe/Zurich] but is: {df.index.dtype}")
             raise ValueError
 
         # warnings
@@ -104,14 +90,10 @@ class DataCleaner:
             logger.error(f"df should only have 2 columns, but has {len(df.columns)}")
             raise ValueError
         if any([df.columns[0] != "Forecasted Load", df.columns[1] != "Actual Load"]):
-            logger.error(
-                f"df.columns should be ['Forecasted Load', 'Actual Load'], but is {df.columns}"
-            )
+            logger.error(f"df.columns should be ['Forecasted Load', 'Actual Load'], but is {df.columns}")
             raise ValueError
         if (df.dtypes != "float64").any():
-            logger.error(
-                f"df.dtypes should be [dtype('float64'), dtype('float64')], but are {df.dtypes.to_list()}"
-            )
+            logger.error(f"df.dtypes should be [dtype('float64'), dtype('float64')], but are {df.dtypes.to_list()}")
             raise ValueError
 
         # Only keep rows below this threshold, as it seems the ENTSO-E sometimes logs extreme values
@@ -162,7 +144,5 @@ class DataCleaner:
         df = DataCleaner._force_1h_frequency(df=df)
 
         # Dump to output dataframe filepath
-        Path(out_df_filepath).parent.mkdir(  # Ensure the folderpath exists
-            parents=True, exist_ok=True
-        )
+        Path(out_df_filepath).parent.mkdir(parents=True, exist_ok=True)  # Ensure the folderpath exists
         df.to_pickle(out_df_filepath)

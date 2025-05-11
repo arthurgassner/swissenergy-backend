@@ -1,21 +1,11 @@
-import logging
 from pathlib import Path
 from typing import List, Optional
 
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
+from loguru import logger
 from tqdm import tqdm
-
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-    ],
-)
-logger = logging.getLogger(__name__)
 
 
 class Model:
@@ -28,9 +18,7 @@ class Model:
             n_estimators (int): Amount of estimators of the LGBMRegressor
         """
         # Create untrained-model and dump to disk
-        self._model = lgb.LGBMRegressor(
-            n_estimators=n_estimators, force_row_wise=True, verbose=-1
-        )
+        self._model = lgb.LGBMRegressor(n_estimators=n_estimators, force_row_wise=True, verbose=-1)
 
     def _train_predict(self, Xy: pd.DataFrame, query_ts: pd.Timestamp) -> float:
         """Train a model on all the features whose index is BEFORE query_ts,
@@ -51,9 +39,7 @@ class Model:
 
         # Extract the serving Xy
         if not query_ts in Xy.index:
-            logger.warning(
-                f"Query timestamp {query_ts} is missing from Xy's index. Cannot run prediction."
-            )
+            logger.warning(f"Query timestamp {query_ts} is missing from Xy's index. Cannot run prediction.")
             return np.nan
 
         X_serving = Xy.loc[[query_ts]].drop(columns=["24h_later_load"])
@@ -103,9 +89,7 @@ class Model:
         predicted_values = []
         for query_ts in tqdm(query_timestamps):
             if query_ts in already_computed_timestamps:
-                predicted_values.append(
-                    already_computed_yhat.loc[query_ts, "predicted_24h_later_load"]
-                )
+                predicted_values.append(already_computed_yhat.loc[query_ts, "predicted_24h_later_load"])
             else:
                 predicted_values.append(self._train_predict(Xy, query_ts))
 

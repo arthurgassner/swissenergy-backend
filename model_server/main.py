@@ -1,4 +1,3 @@
-import logging
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -9,6 +8,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from loguru import logger
 from pydantic import BaseModel
 
 from .data_cleaner import DataCleaner
@@ -33,15 +33,6 @@ class DeltaTime(BaseModel):
     n_hours: int = 1
 
 
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-    ],
-)
-logger = logging.getLogger(__name__)
 app = FastAPI(title="[Swiss Energy Forcasting] ML Backend")
 
 
@@ -105,32 +96,22 @@ def update_forecast(entsoe_api_key: str):
     # Walk-forward validate the model
     logger.info("Start walk-forward validation of the model...")
     model = Model(n_estimators=int(os.getenv("MODEL_N_ESTIMATORS")))
-    latest_load_ts = (
-        pd.read_pickle(GOLD_DF_FILEPATH).dropna(subset=("24h_later_load")).index.max()
-    )
+    latest_load_ts = pd.read_pickle(GOLD_DF_FILEPATH).dropna(subset=("24h_later_load")).index.max()
 
     # Figure out ranges to timestamps to test on
     past_24h_ts = latest_load_ts - timedelta(hours=23)
     past_1w_ts = latest_load_ts - timedelta(weeks=1)
     past_4w_ts = latest_load_ts - timedelta(weeks=4)
 
-    past_24h_timestamps = pd.date_range(
-        start=past_24h_ts, end=latest_load_ts, freq="h"
-    ).to_list()
-    past_1w_timestamps = pd.date_range(
-        start=past_1w_ts, end=past_24h_ts, freq="h"
-    ).to_list()
-    past_4w_timestamps = pd.date_range(
-        start=past_4w_ts, end=past_1w_ts, freq="h"
-    ).to_list()
+    past_24h_timestamps = pd.date_range(start=past_24h_ts, end=latest_load_ts, freq="h").to_list()
+    past_1w_timestamps = pd.date_range(start=past_1w_ts, end=past_24h_ts, freq="h").to_list()
+    past_4w_timestamps = pd.date_range(start=past_4w_ts, end=past_1w_ts, freq="h").to_list()
 
     # Estimate the MAPE off 10% (17 and 50) of the points for the past week/month
     # To avoid heavy computations
     walkforward_yhat = model.train_predict(
         Xy=pd.read_pickle(GOLD_DF_FILEPATH),
-        query_timestamps=past_24h_timestamps
-        + sample(past_1w_timestamps, 17)
-        + sample(past_4w_timestamps, 50),
+        query_timestamps=past_24h_timestamps + sample(past_1w_timestamps, 17) + sample(past_4w_timestamps, 50),
         out_yhat_filepath=WALKFORWARD_YHAT_FILEPATH,
     )
     walkforward_y = pd.read_pickle(GOLD_DF_FILEPATH)[["24h_later_load"]]
@@ -159,9 +140,7 @@ def update_forecast(entsoe_api_key: str):
     logger.info("Start train-predicting the model...")
     model.train_predict(
         Xy=pd.read_pickle(GOLD_DF_FILEPATH),
-        query_timestamps=[
-            pd.Timestamp(latest_load_ts) + timedelta(hours=i) for i in range(1, 25)
-        ],
+        query_timestamps=[pd.Timestamp(latest_load_ts) + timedelta(hours=i) for i in range(1, 25)],
         out_yhat_filepath=YHAT_FILEPATH,
     )
     logger.info("Train-predict done.")
@@ -176,9 +155,7 @@ async def get_root():
 @app.get("/update-forecast")
 async def get_update_forecast(background_tasks: BackgroundTasks):
     logger.info(f"Received GET /update-forecast")
-    background_tasks.add_task(
-        update_forecast, entsoe_api_key=os.getenv("ENTSOE_API_KEY")
-    )
+    background_tasks.add_task(update_forecast, entsoe_api_key=os.getenv("ENTSOE_API_KEY"))
     return {"message": "Forecast updating task started..."}
 
 
@@ -192,9 +169,7 @@ async def get_latest_forecast():
     if yhat_filepath.is_file():
         yhat = pd.read_pickle(yhat_filepath)
         timestamps = yhat.index.tolist()
-        predicted_24h_later_load = (
-            yhat["predicted_24h_later_load"].fillna("NaN").tolist()
-        )
+        predicted_24h_later_load = yhat["predicted_24h_later_load"].fillna("NaN").tolist()
 
     latest_forecasts = {
         "timestamps": timestamps,
@@ -230,9 +205,7 @@ async def get_entsoe_loads(delta_time: DeltaTime):
     }
 
     if len(entsoe_loads["timestamps"]):
-        logger.info(
-            f"Ready to send back: {len(entsoe_loads['timestamps'])} timestamps between {cutoff_ts} -> {end_ts}"
-        )
+        logger.info(f"Ready to send back: {len(entsoe_loads['timestamps'])} timestamps between {cutoff_ts} -> {end_ts}")
     else:
         logger.warning(
             f"Ready to send empty dict: {len(entsoe_loads['timestamps'])} timestamps between {cutoff_ts} -> {end_ts}"

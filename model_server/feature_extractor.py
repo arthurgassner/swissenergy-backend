@@ -79,28 +79,16 @@ class FeatureExtractor:
         # Enrich the df with statistics
         df["8h_min"] = FeatureExtractor._rolling_window(df, n_hours=8, stat=np.nanmin)
         df["8h_max"] = FeatureExtractor._rolling_window(df, n_hours=8, stat=np.nanmax)
-        df["8h_median"] = FeatureExtractor._rolling_window(
-            df, n_hours=8, stat=np.nanmedian
-        )
+        df["8h_median"] = FeatureExtractor._rolling_window(df, n_hours=8, stat=np.nanmedian)
 
         df["24h_min"] = FeatureExtractor._rolling_window(df, n_hours=24, stat=np.nanmin)
         df["24h_max"] = FeatureExtractor._rolling_window(df, n_hours=24, stat=np.nanmax)
-        df["24h_median"] = FeatureExtractor._rolling_window(
-            df, n_hours=24, stat=np.nanmedian
-        )
+        df["24h_median"] = FeatureExtractor._rolling_window(df, n_hours=24, stat=np.nanmedian)
 
-        df["7d_min"] = FeatureExtractor._rolling_window(
-            df, n_hours=7 * 24, stat=np.nanmin
-        )
-        df["7d_max"] = FeatureExtractor._rolling_window(
-            df, n_hours=7 * 24, stat=np.nanmax
-        )
-        df["7d_median"] = FeatureExtractor._rolling_window(
-            df, n_hours=7 * 24, stat=np.nanmedian
-        )
+        df["7d_min"] = FeatureExtractor._rolling_window(df, n_hours=7 * 24, stat=np.nanmin)
+        df["7d_max"] = FeatureExtractor._rolling_window(df, n_hours=7 * 24, stat=np.nanmax)
+        df["7d_median"] = FeatureExtractor._rolling_window(df, n_hours=7 * 24, stat=np.nanmedian)
 
         # Dump to output df
-        Path(out_df_filepath).parent.mkdir(
-            parents=True, exist_ok=True
-        )  # Ensure the folderpath exists
+        Path(out_df_filepath).parent.mkdir(parents=True, exist_ok=True)  # Ensure the folderpath exists
         df.to_pickle(out_df_filepath)

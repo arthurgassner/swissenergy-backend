@@ -27,23 +27,13 @@ def test__n_hours_ago_load__0h_ago():
     # Then
 
     # To know this, we would need to have the '24h_later_load' starting at 2024-01-15 11:00, which we don't
-    assert np.isnan(
-        df.loc[pd.Timestamp("20240116 11:00", tz="Europe/Zurich"), "0h_ago_load"]
-    )
+    assert np.isnan(df.loc[pd.Timestamp("20240116 11:00", tz="Europe/Zurich"), "0h_ago_load"])
 
     # We know this, since we know the '24h_later_load' starting at 2024-01-15 12:00
-    assert (
-        df.loc[pd.Timestamp("20240116 12:00", tz="Europe/Zurich"), "0h_ago_load"] == 0
-    )
-    assert (
-        df.loc[pd.Timestamp("20240116 13:00", tz="Europe/Zurich"), "0h_ago_load"] == 1
-    )
-    assert (
-        df.loc[pd.Timestamp("20240116 14:00", tz="Europe/Zurich"), "0h_ago_load"] == 2
-    )
-    assert (
-        df.loc[pd.Timestamp("20240117 00:00", tz="Europe/Zurich"), "0h_ago_load"] == 12
-    )
+    assert df.loc[pd.Timestamp("20240116 12:00", tz="Europe/Zurich"), "0h_ago_load"] == 0
+    assert df.loc[pd.Timestamp("20240116 13:00", tz="Europe/Zurich"), "0h_ago_load"] == 1
+    assert df.loc[pd.Timestamp("20240116 14:00", tz="Europe/Zurich"), "0h_ago_load"] == 2
+    assert df.loc[pd.Timestamp("20240117 00:00", tz="Europe/Zurich"), "0h_ago_load"] == 12
 
 
 def test__n_hours_ago_load__1h_ago():
@@ -69,23 +59,13 @@ def test__n_hours_ago_load__1h_ago():
     # Then
 
     # To know this, we would need to have the '24h_later_load' starting at 2024-01-15 11:00, which we don't
-    assert np.isnan(
-        df.loc[pd.Timestamp("20240116 12:00", tz="Europe/Zurich"), "1h_ago_load"]
-    )
+    assert np.isnan(df.loc[pd.Timestamp("20240116 12:00", tz="Europe/Zurich"), "1h_ago_load"])
 
     # We know this, since we know the '24h_later_load' starting at 2024-01-15 12:00
-    assert (
-        df.loc[pd.Timestamp("20240116 13:00", tz="Europe/Zurich"), "1h_ago_load"] == 0
-    )
-    assert (
-        df.loc[pd.Timestamp("20240116 14:00", tz="Europe/Zurich"), "1h_ago_load"] == 1
-    )
-    assert (
-        df.loc[pd.Timestamp("20240116 15:00", tz="Europe/Zurich"), "1h_ago_load"] == 2
-    )
-    assert (
-        df.loc[pd.Timestamp("20240117 00:00", tz="Europe/Zurich"), "1h_ago_load"] == 11
-    )
+    assert df.loc[pd.Timestamp("20240116 13:00", tz="Europe/Zurich"), "1h_ago_load"] == 0
+    assert df.loc[pd.Timestamp("20240116 14:00", tz="Europe/Zurich"), "1h_ago_load"] == 1
+    assert df.loc[pd.Timestamp("20240116 15:00", tz="Europe/Zurich"), "1h_ago_load"] == 2
+    assert df.loc[pd.Timestamp("20240117 00:00", tz="Europe/Zurich"), "1h_ago_load"] == 11
 
 
 def test__n_hours_ago_load__8h_ago():
@@ -111,23 +91,13 @@ def test__n_hours_ago_load__8h_ago():
     # Then
 
     # To know this, we would need to have the '24h_later_load' starting at 2024-01-15 11:00, which we don't
-    assert np.isnan(
-        df.loc[pd.Timestamp("20240116 19:00", tz="Europe/Zurich"), "8h_ago_load"]
-    )
+    assert np.isnan(df.loc[pd.Timestamp("20240116 19:00", tz="Europe/Zurich"), "8h_ago_load"])
 
     # We know this, since we know the '24h_later_load' starting at 2024-01-15 12:00
-    assert (
-        df.loc[pd.Timestamp("20240116 20:00", tz="Europe/Zurich"), "8h_ago_load"] == 0
-    )
-    assert (
-        df.loc[pd.Timestamp("20240116 21:00", tz="Europe/Zurich"), "8h_ago_load"] == 1
-    )
-    assert (
-        df.loc[pd.Timestamp("20240116 22:00", tz="Europe/Zurich"), "8h_ago_load"] == 2
-    )
-    assert (
-        df.loc[pd.Timestamp("20240117 00:00", tz="Europe/Zurich"), "8h_ago_load"] == 4
-    )
+    assert df.loc[pd.Timestamp("20240116 20:00", tz="Europe/Zurich"), "8h_ago_load"] == 0
+    assert df.loc[pd.Timestamp("20240116 21:00", tz="Europe/Zurich"), "8h_ago_load"] == 1
+    assert df.loc[pd.Timestamp("20240116 22:00", tz="Europe/Zurich"), "8h_ago_load"] == 2
+    assert df.loc[pd.Timestamp("20240117 00:00", tz="Europe/Zurich"), "8h_ago_load"] == 4
 
 
 def test__rolling_window__1h_window():
@@ -187,9 +157,7 @@ def test__rolling_window__2h_window():
     # Hence we know that the load was 0 (12:00 -> 13:00) and then 1 (12:00 -> 13:00)
     assert df.loc[pd.Timestamp("20240116 14:00", tz="Europe/Zurich"), "2h_min"] == 0
     assert df.loc[pd.Timestamp("20240116 14:00", tz="Europe/Zurich"), "2h_max"] == 1
-    assert (
-        df.loc[pd.Timestamp("20240116 14:00", tz="Europe/Zurich"), "2h_median"] == 0.5
-    )
+    assert df.loc[pd.Timestamp("20240116 14:00", tz="Europe/Zurich"), "2h_median"] == 0.5
 
 
 def test__rolling_window__3h_window_with_nan():
@@ -223,6 +191,4 @@ def test__rolling_window__3h_window_with_nan():
     # - 2 (14:00 -> 15:00)
     assert df.loc[pd.Timestamp("20240116 15:00", tz="Europe/Zurich"), "3h_min"] == 1
     assert df.loc[pd.Timestamp("20240116 15:00", tz="Europe/Zurich"), "3h_max"] == 2
-    assert (
-        df.loc[pd.Timestamp("20240116 15:00", tz="Europe/Zurich"), "3h_median"] == 1.5
-    )
+    assert df.loc[pd.Timestamp("20240116 15:00", tz="Europe/Zurich"), "3h_median"] == 1.5

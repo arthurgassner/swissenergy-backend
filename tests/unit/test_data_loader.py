@@ -28,9 +28,7 @@ def test__query_load_and_forecast__future_ts():
         index=pd.DatetimeIndex([], dtype="datetime64[ns, Europe/Zurich]"),
     )
     assert (expected_df == fetched_df).all().all()  # same values
-    assert all(
-        c1 == c2 for c1, c2 in zip(expected_df.columns, fetched_df.columns)
-    )  # same column names
+    assert all(c1 == c2 for c1, c2 in zip(expected_df.columns, fetched_df.columns))  # same column names
     assert (expected_df.dtypes == fetched_df.dtypes).all()  # same dtypes
     assert (expected_df.index == fetched_df.index).all()  # same index
 
@@ -51,10 +49,7 @@ def test__query_load_and_forecast__24h_ago_ts():
 
     # data
     assert len(fetched_df.columns) == 2  # 2 columns
-    assert (
-        fetched_df.columns[0] == "Forecasted Load"
-        and fetched_df.columns[1] == "Actual Load"
-    )
+    assert fetched_df.columns[0] == "Forecasted Load" and fetched_df.columns[1] == "Actual Load"
     # data is hourly, so we should not have more than 49 -- 49 if hour change happened in the last 48h -- datapoints
     assert len(fetched_df) <= 49
     # at least 24 of those datapoints should be NaN
@@ -87,10 +82,7 @@ def test__query_load_and_forecast__specitic_ts():
 
     # data
     assert len(fetched_df.columns) == 2  # 2 columns
-    assert (
-        fetched_df.columns[0] == "Forecasted Load"
-        and fetched_df.columns[1] == "Actual Load"
-    )
+    assert fetched_df.columns[0] == "Forecasted Load" and fetched_df.columns[1] == "Actual Load"
 
     # data is hourly, so we should have exactly one datapoint
     assert len(fetched_df) == 1

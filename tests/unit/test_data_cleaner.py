@@ -28,10 +28,7 @@ def test__format():
 
     # Then
     assert len(formatted_df.columns) == 2  # 2 columns
-    assert (
-        formatted_df.columns[0] == "24h_later_forecast"
-        and formatted_df.columns[1] == "24h_later_load"
-    )
+    assert formatted_df.columns[0] == "24h_later_forecast" and formatted_df.columns[1] == "24h_later_load"
     assert (formatted_df.dtypes == "float64").all()  # correct dtype
     assert isinstance(formatted_df.index, pd.DatetimeIndex)
     # correct timezone
@@ -65,15 +62,10 @@ def test__force_1h_frequency():
 
     # data
     assert len(enforced_frequency_df.columns) == 2  # 2 columns
-    assert (
-        enforced_frequency_df.columns[0] == "Forecasted Load"
-        and enforced_frequency_df.columns[1] == "Actual Load"
-    )
+    assert enforced_frequency_df.columns[0] == "Forecasted Load" and enforced_frequency_df.columns[1] == "Actual Load"
     assert enforced_frequency_df.index.freq == "h"  # freq is now hourly
     assert len(enforced_frequency_df) == len(df) + 1  # a new row has been added
-    assert (
-        enforced_frequency_df.iloc[2].isna().all()
-    )  # that row is the 3rd row, and filled with nan
+    assert enforced_frequency_df.iloc[2].isna().all()  # that row is the 3rd row, and filled with nan
 
     # index
     assert isinstance(enforced_frequency_df.index, pd.DatetimeIndex)
@@ -82,9 +74,7 @@ def test__force_1h_frequency():
 
     # dtypes
     assert (enforced_frequency_df.dtypes == "float64").all()  # correct dtype
-    assert (
-        enforced_frequency_df.index.dtype == "datetime64[ns, Europe/Zurich]"
-    )  # correct timezone
+    assert enforced_frequency_df.index.dtype == "datetime64[ns, Europe/Zurich]"  # correct timezone
 
 
 def test__enforce_data_quality():
@@ -286,12 +276,6 @@ def test__enforce_data_quality__index_is_not_unique():
     assert index_unique_increasing_df.index.is_unique
     assert index_unique_increasing_df.index.is_monotonic_increasing
     assert len(index_unique_increasing_df) == df.index.nunique()
-    np.testing.assert_array_equal(
-        index_unique_increasing_df.iloc[0], [100.0, np.nan]  # 1st row is unchanged
-    )
-    np.testing.assert_array_equal(
-        index_unique_increasing_df.iloc[1], [200.0, 250.0]  # 2nd row is median
-    )
-    np.testing.assert_array_equal(
-        index_unique_increasing_df.iloc[2], [np.nan, np.nan]  # 3rd row is unchanged
-    )
+    np.testing.assert_array_equal(index_unique_increasing_df.iloc[0], [100.0, np.nan])  # 1st row is unchanged
+    np.testing.assert_array_equal(index_unique_increasing_df.iloc[1], [200.0, 250.0])  # 2nd row is median
+    np.testing.assert_array_equal(index_unique_increasing_df.iloc[2], [np.nan, np.nan])  # 3rd row is unchanged
