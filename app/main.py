@@ -12,7 +12,7 @@ from loguru import logger
 
 from app.core.config import settings
 from app.core.model import Model
-from app.schemas.EntsoeLoads import FetchEntsoeLoadsRequest
+from app.schemas.FetchEntsoeLoads import FetchEntsoeLoadsRequest
 from app.services import (
     data_cleaning_service,
     data_loading_service,
