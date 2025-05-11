@@ -148,9 +148,9 @@ async def get_update_forecast(background_tasks: BackgroundTasks):
     return {"message": "Forecast updating task started..."}
 
 
-@app.get("/latest-forecast")
-async def get_latest_forecast():
-    logger.info("Received GET /latest-forecast")
+@app.get("/fetch-latest-forecast")
+async def get_fetch_latest_forecast():
+    logger.info("Received GET /fetch-latest-forecast")
 
     # Load latest forecast
     timestamps, predicted_24h_later_load = [], []
@@ -171,9 +171,9 @@ async def get_latest_forecast():
     return latest_forecasts
 
 
-@app.post("/entsoe-loads")
-async def post_entsoe_loads(request: EntsoeLoadsRequest):
-    logger.info(f"Received POST /entsoe-loads : {request}")
+@app.post("/fetch-entsoe-loads")
+async def post_fetch_entsoe_loads(request: EntsoeLoadsRequest):
+    logger.info(f"Received POST /fetch-entsoe-loads : {request}")
 
     # Load past loads
     silver_df = pd.read_pickle(settings.SILVER_DF_FILEPATH)
@@ -201,9 +201,9 @@ async def post_entsoe_loads(request: EntsoeLoadsRequest):
     return entsoe_loads
 
 
-@app.get("/latest-forecast-ts")
-async def get_latest_forecast_ts():
-    logger.info(f"Received GET /latest-forecast-ts")
+@app.get("/fetch-latest-forecast-ts")
+async def get_fetch_latest_forecast_ts():
+    logger.info(f"Received GET /fetch-latest-forecast-ts")
 
     if not settings.YHAT_FILEPATH.is_file():
         logger.warning("No forecast has been created. Sending back -1")
@@ -216,9 +216,9 @@ async def get_latest_forecast_ts():
     return {"latest_forecast_ts": creation_ts}
 
 
-@app.get("/latest-mape")
-async def get_latest_mape():
-    logger.info(f"Received GET /latest-mape")
+@app.get("/fetch-latest-mape")
+async def get_fetch_latest_mape():
+    logger.info(f"Received GET /fetch-latest-mape")
 
     # Figure out the ENTSO-E MAPE
     entsoe_filepath = Path(settings.ENTSOE_MAPE_FILEPATH)
