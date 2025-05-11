@@ -12,6 +12,7 @@ services:
     volumes:
         - swissenergy-backend-data:/code/data
     image: swissenergy-backend-image
+    
 volumes:
   swissenergy-backend-data:
     external: true
