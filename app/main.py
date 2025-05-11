@@ -9,7 +9,6 @@ from entsoe import EntsoePandasClient
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
-from pydantic import BaseModel
 
 from app.core.config import settings
 from app.core.model import Model
