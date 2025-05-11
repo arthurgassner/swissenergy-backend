@@ -39,7 +39,7 @@ app.add_middleware(
 )
 
 
-def update_forecast(entsoe_api_key: str):
+def update_forecast():
 
     # Data ingestion -> bronze data
     logger.info("Start downloading data from the ENTSO-E service...")
@@ -148,7 +148,7 @@ async def get_root():
 @app.get("/update-forecast")
 async def get_update_forecast(background_tasks: BackgroundTasks):
     logger.info(f"Received GET /update-forecast")
-    background_tasks.add_task(update_forecast, entsoe_api_key=os.getenv("ENTSOE_API_KEY"))
+    background_tasks.add_task(update_forecast)
     return {"message": "Forecast updating task started..."}
 
 
