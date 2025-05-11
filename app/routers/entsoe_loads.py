@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from loguru import logger
 
 from app.core.config import settings
-from app.schemas.EntsoeLoadsLatest import (
+from app.schemas.entsoe_loads_latest import (
     EntsoeLoadsLatestRequest,
     EntsoeLoadsLatestResponse,
 )
