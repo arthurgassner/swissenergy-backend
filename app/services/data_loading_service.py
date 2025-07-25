@@ -21,6 +21,10 @@ def _split_yearly(start_ts: pd.Timestamp, end_ts: pd.Timestamp) -> list[tuple[pd
     Returns:
         list[tuple[pd.Timestamp, pd.Timestamp]]: Ordered list of yearly intervals.
     """
+    if start_ts > end_ts:
+        logger.error(f"start_ts ({start_ts}) must be <= end_ts ({end_ts})")
+        raise ValueError
+    
     start_end_timestamps = []
     curr_start_ts = start_ts
     curr_end_ts = min(end_ts, curr_start_ts + timedelta(days=365))
