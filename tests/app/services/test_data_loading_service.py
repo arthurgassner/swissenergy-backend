@@ -71,11 +71,10 @@ def test__query_load_and_forecast__24h_ago_ts():
 
     # given
     entsoe_client = EntsoePandasClient(api_key=get_settings().ENTSOE_API_KEY)
+    now_ts = pd.Timestamp(datetime.now(), tz="Europe/Zurich")
 
     # when
-    fetched_df = data_loading_service._query_load_and_forecast(
-        entsoe_client=entsoe_client, start_ts=pd.Timestamp(datetime.now() - timedelta(hours=24), tz="Europe/Zurich")
-    )
+    fetched_df = data_loading_service._query_load_and_forecast(entsoe_client=entsoe_client, start_ts=now_ts - timedelta(hours=24))
 
     # then
 
@@ -84,8 +83,9 @@ def test__query_load_and_forecast__24h_ago_ts():
     assert fetched_df.columns[0] == "Forecasted Load" and fetched_df.columns[1] == "Actual Load"
     # data is hourly, so we should not have more than 49 -- 49 if hour change happened in the last 48h -- datapoints
     assert len(fetched_df) <= 49
-    # at least 24 of those datapoints should be NaN
-    assert fetched_df["Actual Load"].isna().sum() >= 24
+    # all datapoints after now should be NaN
+    mask = fetched_df.index > now_ts
+    assert fetched_df.loc[mask, "Actual Load"].isna().all()
 
     # index
     assert isinstance(fetched_df.index, pd.DatetimeIndex)
