@@ -8,7 +8,7 @@ from entsoe import EntsoePandasClient
 from fastapi import APIRouter, BackgroundTasks
 from loguru import logger
 
-from app.core.config import settings
+from app.core.config import get_settings
 from app.core.model import Model
 from app.services import (
     data_cleaning_service,
@@ -23,15 +23,15 @@ router = APIRouter()
 def update_forecast():
     # Data ingestion -> bronze data
     logger.info("Start downloading data from the ENTSO-E service...")
-    entsoe_client = EntsoePandasClient(api_key=settings.ENTSOE_API_KEY)
-    data_loading_service.fetch_df(entsoe_client, settings.BRONZE_DF_FILEPATH)
+    entsoe_client = EntsoePandasClient(api_key=get_settings().ENTSOE_API_KEY)
+    data_loading_service.fetch_df(entsoe_client, get_settings().BRONZE_DF_FILEPATH)
     logger.info("Data downloaded")
 
     # [bronze -> silver] Data cleaning
     logger.info("Start cleaning the downloaded data...")
     data_cleaning_service.clean(
-        df=pd.read_pickle(settings.BRONZE_DF_FILEPATH),
-        out_df_filepath=settings.SILVER_DF_FILEPATH,
+        df=pd.read_pickle(get_settings().BRONZE_DF_FILEPATH),
+        out_df_filepath=get_settings().SILVER_DF_FILEPATH,
     )
     logger.info("Data cleaned.")
 
@@ -40,7 +40,7 @@ def update_forecast():
     mape_df = performance_measure_service.compute_mape(
         y_true_col="Actual Load",
         y_pred_col="Forecasted Load",
-        data=pd.read_pickle(settings.BRONZE_DF_FILEPATH),
+        data=pd.read_pickle(get_settings().BRONZE_DF_FILEPATH),
         timedeltas=[
             timedelta(hours=1),
             timedelta(hours=24),
@@ -54,22 +54,22 @@ def update_forecast():
         "7d": mape_df.mape.iloc[2],
         "4w": mape_df.mape.iloc[3],
     }
-    joblib.dump(mape, settings.ENTSOE_MAPE_FILEPATH)
+    joblib.dump(mape, get_settings().ENTSOE_MAPE_FILEPATH)
     logger.info(f"ENTSO-E MAPE: {mape}")
     logger.info("Official model's MAPE computed")
 
     # [silver -> gold] Extract features
     logger.info("Start extracting features...")
     feature_extraction_service.extract_features(
-        df=pd.read_pickle(settings.SILVER_DF_FILEPATH),
-        out_df_filepath=settings.GOLD_DF_FILEPATH,
+        df=pd.read_pickle(get_settings().SILVER_DF_FILEPATH),
+        out_df_filepath=get_settings().GOLD_DF_FILEPATH,
     )
     logger.info("Features extracted.")
 
     # Walk-forward validate the model
     logger.info("Start walk-forward validation of the model...")
-    model = Model(n_estimators=settings.MODEL_N_ESTIMATORS)
-    latest_load_ts = pd.read_pickle(settings.GOLD_DF_FILEPATH).dropna(subset=("24h_later_load")).index.max()
+    model = Model(n_estimators=get_settings().MODEL_N_ESTIMATORS)
+    latest_load_ts = pd.read_pickle(get_settings().GOLD_DF_FILEPATH).dropna(subset=("24h_later_load")).index.max()
 
     # Figure out ranges to timestamps to test on
     past_24h_ts = latest_load_ts - timedelta(hours=23)
@@ -83,11 +83,11 @@ def update_forecast():
     # Estimate the MAPE off 10% (17 and 50) of the points for the past week/month
     # To avoid heavy computations
     walkforward_yhat = model.train_predict(
-        Xy=pd.read_pickle(settings.GOLD_DF_FILEPATH),
+        Xy=pd.read_pickle(get_settings().GOLD_DF_FILEPATH),
         query_timestamps=past_24h_timestamps + sample(past_1w_timestamps, 17) + sample(past_4w_timestamps, 50),
-        out_yhat_filepath=settings.WALKFORWARD_YHAT_FILEPATH,
+        out_yhat_filepath=get_settings().WALKFORWARD_YHAT_FILEPATH,
     )
-    walkforward_y = pd.read_pickle(settings.GOLD_DF_FILEPATH)[["24h_later_load"]]
+    walkforward_y = pd.read_pickle(get_settings().GOLD_DF_FILEPATH)[["24h_later_load"]]
     mape_df = performance_measure_service.compute_mape(
         y_true_col="24h_later_load",
         y_pred_col="predicted_24h_later_load",
@@ -105,16 +105,16 @@ def update_forecast():
         "7d": mape_df.mape.iloc[2],
         "4w": mape_df.mape.iloc[3],
     }
-    joblib.dump(mape, settings.OUR_MODEL_MAPE_FILEPATH)
+    joblib.dump(mape, get_settings().OUR_MODEL_MAPE_FILEPATH)
     logger.info(f"MAPE: {mape}")
     logger.info("Walk-forward validation done.")
 
     # Train-predict
     logger.info("Start train-predicting the model...")
     model.train_predict(
-        Xy=pd.read_pickle(settings.GOLD_DF_FILEPATH),
+        Xy=pd.read_pickle(get_settings().GOLD_DF_FILEPATH),
         query_timestamps=[pd.Timestamp(latest_load_ts) + timedelta(hours=i) for i in range(1, 25)],
-        out_yhat_filepath=settings.YHAT_FILEPATH,
+        out_yhat_filepath=get_settings().YHAT_FILEPATH,
     )
     logger.info("Train-predict done.")
 
@@ -129,8 +129,8 @@ async def get_forecasts_update(background_tasks: BackgroundTasks):
 async def get_forecasts_fetch_latest_predictions():
     # Load latest forecast
     timestamps, predicted_24h_later_load = [], []
-    if settings.YHAT_FILEPATH.is_file():
-        yhat = pd.read_pickle(settings.YHAT_FILEPATH)
+    if get_settings().YHAT_FILEPATH.is_file():
+        yhat = pd.read_pickle(get_settings().YHAT_FILEPATH)
         timestamps = yhat.index.tolist()
         predicted_24h_later_load = yhat["predicted_24h_later_load"].fillna("NaN").tolist()
 
@@ -148,13 +148,13 @@ async def get_forecasts_fetch_latest_predictions():
 
 @router.get("/forecasts/fetch/latest/ts")
 async def get_fetch_latest_forecast_ts():
-    if not settings.YHAT_FILEPATH.is_file():
+    if not get_settings().YHAT_FILEPATH.is_file():
         logger.warning("No forecast has been created. Sending back -1")
         return {"latest_forecast_ts": -1}
 
-    creation_ts = os.path.getctime(settings.YHAT_FILEPATH)  # since epoch
+    creation_ts = os.path.getctime(get_settings().YHAT_FILEPATH)  # since epoch
     logger.info(
-        f"Ready to send back the creation timestamp of {settings.YHAT_FILEPATH}: {creation_ts} ({datetime.fromtimestamp(creation_ts)})"
+        f"Ready to send back the creation timestamp of {get_settings().YHAT_FILEPATH}: {creation_ts} ({datetime.fromtimestamp(creation_ts)})"
     )
     return {"latest_forecast_ts": creation_ts}
 
@@ -163,13 +163,13 @@ async def get_fetch_latest_forecast_ts():
 async def get_fetch_latest_mape():
     # Figure out the ENTSO-E MAPE
     entsoe_mape = {}
-    if settings.ENTSOE_MAPE_FILEPATH.is_file():
-        entsoe_mape = joblib.load(settings.ENTSOE_MAPE_FILEPATH)
+    if get_settings().ENTSOE_MAPE_FILEPATH.is_file():
+        entsoe_mape = joblib.load(get_settings().ENTSOE_MAPE_FILEPATH)
 
     # Figure out our model's MAPE
     our_model_mape = {}
-    if settings.OUR_MODEL_MAPE_FILEPATH.is_file():
-        our_model_mape = joblib.load(settings.OUR_MODEL_MAPE_FILEPATH)
+    if get_settings().OUR_MODEL_MAPE_FILEPATH.is_file():
+        our_model_mape = joblib.load(get_settings().OUR_MODEL_MAPE_FILEPATH)
 
     mape = {
         "entsoe_model": entsoe_mape,

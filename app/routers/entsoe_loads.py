@@ -2,7 +2,7 @@ import pandas as pd
 from fastapi import APIRouter
 from loguru import logger
 
-from app.core.config import settings
+from app.core.config import get_settings
 from app.schemas.entsoe_loads_fetch_latest import (
     EntsoeLoadsFetchLatestRequest,
     EntsoeLoadsFetchLatestResponse,
@@ -14,7 +14,7 @@ router = APIRouter()
 @router.post("/entsoe-loads/fetch/latest")
 async def post_entsoe_loads_fetch_latest(request: EntsoeLoadsFetchLatestRequest) -> EntsoeLoadsFetchLatestResponse:
     # Load past loads
-    silver_df = pd.read_pickle(settings.SILVER_DF_FILEPATH)
+    silver_df = pd.read_pickle(get_settings().SILVER_DF_FILEPATH)
 
     # Figure out till when the records should be sent
     end_ts = silver_df.index.max()

@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 from entsoe import EntsoePandasClient
 
-from app.core.config import settings
+from app.core.config import get_settings
 from app.services import data_loading_service
 
 
@@ -12,7 +12,7 @@ def test__query_load_and_forecast__future_ts():
     """Querying the ENTSO-E API with a timestamp 48h in the future should result in an empty df."""
 
     # given
-    entsoe_client = EntsoePandasClient(api_key=settings.ENTSOE_API_KEY)
+    entsoe_client = EntsoePandasClient(api_key=get_settings().ENTSOE_API_KEY)
 
     # when
     fetched_df = data_loading_service._query_load_and_forecast(
@@ -35,7 +35,7 @@ def test__query_load_and_forecast__24h_ago_ts():
     """Querying the ENTSO-E API with a timestamp 24h ago."""
 
     # given
-    entsoe_client = EntsoePandasClient(api_key=settings.ENTSOE_API_KEY)
+    entsoe_client = EntsoePandasClient(api_key=get_settings().ENTSOE_API_KEY)
 
     # when
     fetched_df = data_loading_service._query_load_and_forecast(
@@ -66,7 +66,7 @@ def test__query_load_and_forecast__specitic_ts():
     """Querying the ENTSO-E API with a timestamp whose load/forecast is known."""
 
     # given
-    entsoe_client = EntsoePandasClient(api_key=settings.ENTSOE_API_KEY)
+    entsoe_client = EntsoePandasClient(api_key=get_settings().ENTSOE_API_KEY)
 
     # when
     fetched_df = data_loading_service._query_load_and_forecast(
