@@ -11,6 +11,25 @@ from entsoe.exceptions import NoMatchingDataError
 from human_readable import precise_delta
 from loguru import logger
 
+def _split_yearly(start_ts: pd.Timestamp, end_ts: pd.Timestamp) -> list[tuple[pd.Timestamp, pd.Timestamp]]:
+    """Split a time interval (start_ts, end_ts) into an ordered list of yearly intervals.
+
+    Args:
+        start_ts (pd.Timestamp): Starting timestamp
+        end_ts (pd.Timestamp): End timestamp
+
+    Returns:
+        list[tuple[pd.Timestamp, pd.Timestamp]]: Ordered list of yearly intervals.
+    """
+    start_end_timestamps = []
+    curr_start_ts = start_ts
+    curr_end_ts = min(end_ts, curr_start_ts + timedelta(days=365))
+    while curr_end_ts < end_ts:
+        start_end_timestamps.append((curr_start_ts, curr_end_ts))
+        curr_start_ts = curr_end_ts
+        curr_end_ts = min(end_ts, curr_start_ts + timedelta(days=365))
+    start_end_timestamps.append((curr_start_ts, end_ts))
+    return start_end_timestamps
 
 def _query_load_and_forecast(
     entsoe_client: EntsoePandasClient,
@@ -40,14 +59,7 @@ def _query_load_and_forecast(
         end_ts = pd.Timestamp(datetime.now() + timedelta(hours=24), tz="Europe/Zurich")
 
     # Split up the query into yearly queries
-    start_end_timestamps = []
-    curr_start_ts = start_ts
-    curr_end_ts = min(end_ts, curr_start_ts + timedelta(days=365))
-    while curr_end_ts < end_ts:
-        start_end_timestamps.append((curr_start_ts, curr_end_ts))
-        curr_start_ts = curr_end_ts
-        curr_end_ts = min(end_ts, curr_start_ts + timedelta(days=365))
-    start_end_timestamps.append((curr_start_ts, end_ts))
+    start_end_timestamps = _split_yearly(start_ts, end_ts)
 
     # Send each yearly-query to the ENTSO-E API
     fetched_dfs = []
