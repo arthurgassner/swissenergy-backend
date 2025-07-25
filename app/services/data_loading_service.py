@@ -3,7 +3,6 @@
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
 
 import pandas as pd
 import requests
@@ -16,7 +15,7 @@ from loguru import logger
 def _query_load_and_forecast(
     entsoe_client: EntsoePandasClient,
     start_ts: pd.Timestamp,
-    end_ts: Optional[pd.Timestamp] = None,
+    end_ts: pd.Timestamp | None = None,
     max_retries: int = 10,
 ) -> pd.DataFrame:
     """Query the ENTSO-E API for the load and forecast data from `start_ts` to `end_ts`, breaking it down into yearly-queries.
@@ -27,7 +26,7 @@ def _query_load_and_forecast(
     Args:
         entsoe_client (EntsoePandasClient): ENTSO-E client
         start_ts (pd.Timestamp): Starting ts (tz="Europe/Zurich") of the requested data
-        end_ts (Optional[pd.Timestamp]): Ending ts (tz="Europe/Zurich") of the requested data, default to 24h away from now.
+        end_ts (pd.Timestamp, optional): Ending ts (tz="Europe/Zurich") of the requested data, default to 24h away from now.
         max_retries (int): Max amount of retries, as the ENTSO-E API tends to abort the connection.
 
     Returns:

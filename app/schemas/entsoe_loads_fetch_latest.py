@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List
 
 import pandas as pd
 from pydantic import BaseModel
@@ -15,6 +14,6 @@ class EntsoeLoadsFetchLatestRequest(BaseModel):
 
 
 class EntsoeLoadsFetchLatestResponse(BaseModel):
-    timestamps: List[datetime]
-    day_later_loads: List[float | str]
-    day_later_forecasts: List[float | str]
+    timestamps: list[datetime]
+    day_later_loads: list[float | str]
+    day_later_forecasts: list[float | str]

@@ -1,7 +1,6 @@
 """Service responsible for measuring the performance of a time-series prediction model."""
 
 from datetime import timedelta
-from typing import List
 
 import numpy as np
 import pandas as pd
@@ -12,7 +11,7 @@ def compute_mape(
     y_true_col: str,
     y_pred_col: str,
     data: pd.DataFrame,
-    timedeltas: List[timedelta],
+    timedeltas: list[timedelta],
 ) -> pd.Series:
     """Measure the Mean Absolute Percentage Error (MAPE) between the ground-truth and a prediction,
     for each period between the latest ts in data.index and spanning timedelta.
@@ -23,7 +22,7 @@ def compute_mape(
         y_true_col (str): Ground-truth's column name in `data`
         y_pred_col (str): Prediction's column name in `data`
         data (pd.DataFrame): Dataframe containing the ground-truth and prediction, with a pd.DatetimeIndex
-        timedeltas (List[timedelta]): Timedelta from which we should compute the MAPE,
+        timedeltas (list[timedelta]): Timedelta from which we should compute the MAPE,
                                         starting at the latest ts in `data`.
 
     Returns:

@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import List, Optional
 
 import lightgbm as lgb
 import numpy as np
@@ -58,9 +57,9 @@ class Model:
     def train_predict(
         self,
         Xy: pd.DataFrame,
-        query_timestamps: List[pd.Timestamp],
-        out_yhat_filepath: Optional[Path] = None,
-        already_computed_yhat_filepath: Optional[Path] = None,
+        query_timestamps: list[pd.Timestamp],
+        out_yhat_filepath: Path | None = None,
+        already_computed_yhat_filepath: Path | None = None,
     ) -> pd.Series:
         """Train one model per query_ts in `query_timestamps` not already-present in `already_computed_yhat_filepath`.
         Each model will only be training on the features in Xy available strictly BEFORE said query_ts.
@@ -68,7 +67,7 @@ class Model:
 
         Args:
             Xy (pd.DataFrame): Dataframe containing the (features, target), where the target is '24h_later_load'
-            query_timestamps (List[pd.Timestamp]): Timestamps whose inference we are interested in
+            query_timestamps (list[pd.Timestamp]): Timestamps whose inference we are interested in
             out_yhat_filepath (Path, optional): Where to save the predictions.
             already_computed_yhat_filepath (Path, optional): Filepath of already-computed yhats.
                                                             If given, the timestamps whose yhat exists will not be recomputed.
