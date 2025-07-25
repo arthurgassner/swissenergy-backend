@@ -47,10 +47,11 @@ def test__query_load_and_forecast__future_ts():
 
     # given
     entsoe_client = EntsoePandasClient(api_key=get_settings().ENTSOE_API_KEY)
+    future_ts = pd.Timestamp(datetime.now(), tz="Europe/Zurich") + timedelta(hours=48)
 
     # when
     fetched_df = data_loading_service._query_load_and_forecast(
-        entsoe_client=entsoe_client, start_ts=pd.Timestamp(datetime.now() + timedelta(hours=48), tz="Europe/Zurich")
+        entsoe_client=entsoe_client, start_ts=future_ts, end_ts=future_ts + timedelta(hours=24)
     )
 
     # then
