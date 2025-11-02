@@ -42,7 +42,7 @@ The repo is structured as follows
 ├── Dockerfile
 ├── README.md
 ├── data_checks.ipynb # Used to manually check our data
-├── compose.yml 
+├── compose.yaml 
 └── sanity_checks.ipynb # Used to manually check our some inputs
 ```
 
