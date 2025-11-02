@@ -2,4 +2,6 @@
 name = "swissenergy-backend"
 version = "0.1.0"
 requires-python = ">=3.13.5"
-dependencies = []
+dependencies = [
+    "fastapi[standard]>=0.120.4",
+]
