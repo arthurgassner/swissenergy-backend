@@ -38,6 +38,7 @@ The repo is structured as follows
 ├── .pyproject.toml
 ├── .gitignore 
 ├── .pre-commit-config.yaml 
+├── uv.lock
 ├── Dockerfile
 ├── README.md
 ├── data_checks.ipynb # Used to manually check our data
