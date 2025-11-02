@@ -35,15 +35,15 @@ The repo is structured as follows
 ├── viz/ # Visualization built for the writeup
 ├── nb-dev/ # Notebooks created during the EDA/Modelling phase
 ├── tests/ # pytests
-├── .pyproject.toml
 ├── .gitignore 
 ├── .pre-commit-config.yaml 
+├── .pyproject.toml
 ├── uv.lock
 ├── Dockerfile
-├── README.md
-├── data_checks.ipynb # Used to manually check our data
 ├── compose.yaml 
-└── sanity_checks.ipynb # Used to manually check our some inputs
+├── sanity_checks.ipynb # Used to manually check our some inputs
+├── data_checks.ipynb # Used to manually check our data
+└── README.md
 ```
 
 ## Running the backend
