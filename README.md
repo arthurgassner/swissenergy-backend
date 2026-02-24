@@ -1,5 +1,6 @@
 > [!WARNING]
-> This repo has been **archived** and its content moved to [arthurgassner/swissenergyforecast](https://github.com/arthurgassner/swissenergyforecast).
+> This repo has been **archived**. 
+> Its content was moved to this repo: [github.com/arthurgassner/swissenergyforecast](https://github.com/arthurgassner/swissenergyforecast).
 
 ---
 
