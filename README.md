@@ -1,7 +1,9 @@
-# swissenergy-backend
-
-> [!IMPORTANT]
+> [!WARNING]
 > This repo has been **archived** and its content moved to [arthurgassner/swissenergyforecast](https://github.com/arthurgassner/swissenergyforecast).
+
+---
+
+# swissenergy-backend
 
 <br>
 
