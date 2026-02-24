@@ -1,5 +1,8 @@
 # swissenergy-backend
 
+> [!IMPORTANT]
+> This repo has been **archived** and its content moved to [arthurgassner/swissenergyforecast](https://github.com/arthurgassner/swissenergyforecast).
+
 <br>
 
 <p align="center">🚀 <a href="https://swissenergyforecast.com"><strong>live dashboard & detailed write-up</strong></a> 🚀</p>
